@@ -2,7 +2,7 @@ class BurgerNode {
     constructor() {
         this.chain = []
         this.pendingTransactions = []
-
+        this.nodes = []
         this.createNewBlock('00000000000', '0') // genesisBlock
 
     }
@@ -18,6 +18,12 @@ class BurgerNode {
 
         this.chain.push(block)
         return block
+    }
+
+    addNodeToNetwork( address){
+        
+        this.nodes.push(address)
+
     }
 }
 
