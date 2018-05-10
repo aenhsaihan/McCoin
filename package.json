@@ -1,0 +1,19 @@
+{
+  "name": "mccoin",
+  "version": "1.0.0",
+  "description": "academy token blockchain project",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aenhsaihan/McCoin.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/aenhsaihan/McCoin/issues"
+  },
+  "homepage": "https://github.com/aenhsaihan/McCoin#readme"
+}
