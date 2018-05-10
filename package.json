@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/aenhsaihan/McCoin/issues"
   },
-  "homepage": "https://github.com/aenhsaihan/McCoin#readme"
+  "homepage": "https://github.com/aenhsaihan/McCoin#readme",
+  "dependencies": {
+    "crypto-js": "^3.1.9-1"
+  }
 }

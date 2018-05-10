@@ -25,6 +25,10 @@ class BurgerNode {
         this.nodes.push(address)
 
     }
+
+    validateChain(){
+        
+    }
 }
 
 module.exports = BurgerNode
