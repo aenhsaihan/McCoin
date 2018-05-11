@@ -18,4 +18,16 @@ app.get('/blocks', (request, response) => {
     response.json(burgerNode.getBlocks())
 })
 
+app.get('/blocks/:index', (request, response) => {
+    const index = request.params.index
+    const block = burgerNode.findBlockByIndex(index)
+    response.json(block)
+})
+
+app.post('/mining/submit-mined-block', (request, response) => {
+    const newBlock = burgerNode.createNewBlock(0, 0);
+    console.log('block added: ' + JSON.stringify(newBlock));
+    response.send();
+})
+
 initializeServer()

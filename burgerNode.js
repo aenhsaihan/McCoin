@@ -8,10 +8,10 @@ class BurgerNode {
     }
 
     createNewBlock(proof, previousHash, confirmedTransactions = []) {
-        const index = this.chain.blocks.length + 1;
+        const index = this.getLatestBlock().index + 1;
         const timestamp = new Date().toISOString();
 
-        const block = BurgerBlock(
+        const block = new BurgerBlock(
             index,
             timestamp,
             confirmedTransactions,
@@ -25,6 +25,16 @@ class BurgerNode {
 
     getBlocks() {
         return this.chain.blocks;
+    }
+
+    getLatestBlock() {
+        return this.chain.blocks[this.chain.blocks.length - 1];
+    }
+
+    findBlockByIndex(index) {
+        const blocks = this.getBlocks()
+        const blockAtIndex = blocks.filter(block => block.index === parseInt(index))
+        return blockAtIndex
     }
 
     addNodeToNetwork(address) {
