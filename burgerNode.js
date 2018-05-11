@@ -1,37 +1,37 @@
 const BurgerBlock = require('./burgerBlock');
 
 class BurgerNode {
-    constructor(burgerBlockchain) {
-        this.chain = burgerBlockchain;
-        this.pendingTransactions = [];
-        this.nodes = [];
-    }
+  constructor(burgerBlockchain) {
+    this.chain = burgerBlockchain;
+    this.pendingTransactions = [];
+    this.nodes = [];
+  }
 
-    createNewBlock(proof, previousHash, confirmedTransactions = []) {
-        const index = this.chain.blocks.length + 1;
-        const timestamp = new Date().toISOString();
+  createNewBlock(proof, previousHash, confirmedTransactions = []) {
+    const index = this.chain.blocks.length + 1;
+    const timestamp = new Date().toISOString();
 
-        const block = BurgerBlock(
-            index,
-            timestamp,
-            confirmedTransactions,
-            proof,
-            previousHash
-        );
+    const block = new BurgerBlock(
+      index,
+      timestamp,
+      confirmedTransactions,
+      proof,
+      previousHash
+    );
 
-        this.chain.addBlock(block);
-        return block;
-    }
+    this.chain.addBlock(block);
+    return block;
+  }
 
-    getBlocks() {
-        return this.chain.blocks;
-    }
+  getBlocks() {
+    return this.chain.blocks;
+  }
 
-    addNodeToNetwork(address) {
-        this.nodes.push(address);
-    }
+  addNodeToNetwork(address) {
+    this.nodes.push(address);
+  }
 
-    validateChain() {}
+  validateChain() {}
 }
 
 module.exports = BurgerNode;
