@@ -1,41 +1,47 @@
 const BurgerBlock = require('./burgerBlock');
 
 class BurgerNode {
-  constructor(burgerBlockchain) {
-    this.chain = burgerBlockchain;
-    this.pendingTransactions = [];
-    this.nodes = [];
-  }
+    constructor(burgerBlockchain) {
+        this.chain = burgerBlockchain;
+        this.pendingTransactions = [];
+        this.nodes = [];
+    }
 
-  createNewBlock(proof, previousHash, confirmedTransactions = []) {
-    const index = this.getLatestBlock().index + 1;
-    const timestamp = new Date().toISOString();
+    createNewBlock(proof, previousHash, confirmedTransactions = []) {
+        const index = this.getLatestBlock().index + 1;
+        const timestamp = new Date().toISOString();
 
-    const block = new BurgerBlock(
-      index,
-      timestamp,
-      confirmedTransactions,
-      proof,
-      previousHash
-    );
+        const block = new BurgerBlock(
+            index,
+            timestamp,
+            confirmedTransactions,
+            proof,
+            previousHash
+        );
 
-    this.chain.addBlock(block);
-    return block;
-  }
+        this.chain.addBlock(block);
+        return block;
+    }
 
-  getBlocks() {
-    return this.chain.blocks;
-  }
+    getBlocks() {
+        return this.chain.blocks;
+    }
 
-  getLatestBlock() {
-    return this.chain.blocks[this.chain.blocks.length - 1];
-  }
+    getLatestBlock() {
+        return this.chain.blocks[this.chain.blocks.length - 1];
+    }
 
-  addNodeToNetwork(address) {
-    this.nodes.push(address);
-  }
+    findBlockByIndex(index) {
+        const blocks = this.getBlocks()
+        const blockAtIndex = blocks.filter(block => block.index === parseInt(index))
+        return blockAtIndex
+    }
 
-  validateChain() {}
+    addNodeToNetwork(address) {
+        this.nodes.push(address);
+    }
+
+    validateChain() {}
 }
 
 module.exports = BurgerNode;
