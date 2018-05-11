@@ -26,7 +26,7 @@ class BurgerNode {
   }
 
   getBlocks() {
-    return this.chain;
+    return this.chain.blocks;
   }
 
   addNodeToNetwork(address) {
