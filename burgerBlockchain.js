@@ -28,6 +28,10 @@ class BurgerBlockchain {
     createMiningJob(block) {
         this.miningJobs.set(block.blockDataHash, block);
     }
+
+    resetChain() {
+      this.blocks = [this.createGenesisBlock()];
+    }
 }
 
 module.exports = BurgerBlockchain
