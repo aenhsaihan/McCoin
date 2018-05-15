@@ -71,6 +71,13 @@ app.get('/debug', (req, res) => {
     });
 })
 
+app.get('/debug/reset-chain', (req, res) => {
+  burgerNode.resetChain();
+  res.json({
+    message: "The chain was reset to its genesis block"
+  });
+})
+
 var initP2PServer = () => {
     var server = new WebSocket.Server({ port: p2p_port });
     server.on('connection', ws => initConnection(ws));
