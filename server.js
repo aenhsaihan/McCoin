@@ -53,7 +53,7 @@ app.get('/peers', (req, res) => {
     res.send(sockets.map(s => s._socket.remoteAddress + ':' + s._socket.remotePort));
 })
 
-app.post('/addPeer', (req, res) => {
+app.post('/peers/connect', (req, res) => {
     connectToPeers([req.body.peer]);
     res.send("Success",200);
 })
