@@ -80,7 +80,7 @@ var initP2PServer = () => {
 
 var initConnection = (ws) => {
     sockets.push(ws);
-    burgerNode.addNodeToNetwork(ws.url);
+    burgerNode.nodes = sockets.map(s => s._socket.remoteAddress + ":" + s._socket.remotePort);
     initMessageHandler(ws);
     initErrorHandler(ws);
     write(ws, queryChainLengthMsg());
@@ -108,6 +108,7 @@ var initErrorHandler = (ws) => {
     var closeConnection = (ws) => {
         console.log('connection failed to peer: ' + ws.url);
         sockets.splice(sockets.indexOf(ws), 1);
+        burgerNode.nodes = sockets.map(s => s._socket.remoteAddress + ":" + s._socket.remotePort);
     };
     ws.on('close', () => closeConnection(ws));
     ws.on('error', () => closeConnection(ws));
