@@ -37,8 +37,8 @@ class BurgerNode {
         return blockAtIndex
     }
 
-    addNodeToNetwork(address) {
-        this.nodes.push(address);
+    addNodeToNetwork(node) {
+        this.nodes.push(node);
     }
 
     validateChain() {}
