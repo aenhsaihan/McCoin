@@ -156,6 +156,7 @@ var connectToPeers = (newPeers) => {
 };
 
 var handleBlockchainResponse = message => {
+
     var receivedChain = JSON.parse(message.data);
     receivedChain = new BurgerBlockchain(receivedChain.pendingTransactions, receivedChain.currentDifficulty, receivedChain.blocks);
     var latestBlockReceived = receivedChain.getLastBlock();
