@@ -1,6 +1,7 @@
 const express = require('express')
 const BurgerBlockchain = require('./burgerBlockchain')
 const BurgerNode = require('./burgerNode')
+const BurgerMiner = require('./burgerMiner')
 var bodyParser = require('body-parser');
 var WebSocket = require("ws");
 
@@ -59,6 +60,10 @@ app.post('/mining/submit-mined-block', (request, response) => {
 app.get('/mining/get-mining-job/:address', (request, response) => {
     const minerAddress = request.params.address;
     const candidateBlock = burgerBlockchain.prepareCandidateBlock(minerAddress);
+
+    const miner = new BurgerMiner(candidateBlock, 0);
+    miner.mineBlock();
+
     response.json(candidateBlock);
 })
 
