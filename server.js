@@ -56,14 +56,21 @@ app.post('/mining/submit-mined-block', (request, response) => {
     response.send();
 })
 
+// app.get('/mining/get-mining-job/:address', (request, response) => {
+//     const minerAddress = request.params.address;
+
+//     const info = burgerNode.mine(minerAddress);
+
+//     broadcast(responseLatestMsg());
+
+//     response.json(info);
+// })
+
+
 app.get('/mining/get-mining-job/:address', (request, response) => {
     const minerAddress = request.params.address;
-
-    const info = burgerNode.mine(minerAddress);
-
-    broadcast(responseLatestMsg());
-
-    response.json(info);
+    const information = burgerNode.chain.prepareCandidateBlock(minerAddress);
+    response.json(information);
 })
 
 app.post('/transactions/send', (req, res) => {
@@ -104,7 +111,9 @@ app.get('/debug/reset-chain', (req, res) => {
 
 
 var initP2PServer = () => {
-    var server = new WebSocket.Server({ port: p2p_port });
+    var server = new WebSocket.Server({
+        port: p2p_port
+    });
     server.on('connection', ws => initConnection(ws));
     console.log('listening websocket p2p port on: ' + p2p_port);
 };
@@ -156,38 +165,42 @@ var connectToPeers = (newPeers) => {
 };
 
 var handleBlockchainResponse = message => {
-  var receivedBlocks = JSON.parse(message.data).sort(
-    (b1, b2) => b1.index - b2.index
-  );
-  var latestBlockReceived = receivedBlocks[receivedBlocks.length - 1];
-  var latestBlockHeld = burgerNode.chain.getLastBlock();
-  if (latestBlockReceived.index > latestBlockHeld.index) {
-    console.log(
-      'blockchain possibly behind. We got: ' +
-        latestBlockHeld.index +
-        ' Peer got: ' +
-        latestBlockReceived.index
+    var receivedBlocks = JSON.parse(message.data).sort(
+        (b1, b2) => b1.index - b2.index
     );
-    if (latestBlockHeld.hash === latestBlockReceived.previousHash) {
-      console.log('We can append the received block to our chain');
-      burgerNode.chain.addBlock(latestBlockReceived);
-      broadcast(responseLatestMsg());
-    } else if (receivedBlocks.length === 1) {
-      console.log('We have to query the chain from our peer');
-      broadcast(queryAllMsg());
+    var latestBlockReceived = receivedBlocks[receivedBlocks.length - 1];
+    var latestBlockHeld = burgerNode.chain.getLastBlock();
+    if (latestBlockReceived.index > latestBlockHeld.index) {
+        console.log(
+            'blockchain possibly behind. We got: ' +
+            latestBlockHeld.index +
+            ' Peer got: ' +
+            latestBlockReceived.index
+        );
+        if (latestBlockHeld.hash === latestBlockReceived.previousHash) {
+            console.log('We can append the received block to our chain');
+            burgerNode.chain.addBlock(latestBlockReceived);
+            broadcast(responseLatestMsg());
+        } else if (receivedBlocks.length === 1) {
+            console.log('We have to query the chain from our peer');
+            broadcast(queryAllMsg());
+        } else {
+            console.log('Received blockchain is longer than current blockchain');
+            burgerNode.replaceChain(receivedBlocks);
+        }
     } else {
-      console.log('Received blockchain is longer than current blockchain');
-      burgerNode.replaceChain(receivedBlocks);
+        console.log(
+            'received blockchain is not longer than current blockchain. Do nothing'
+        );
     }
-  } else {
-    console.log(
-      'received blockchain is not longer than current blockchain. Do nothing'
-    );
-  }
 };
 
-var queryChainLengthMsg = () => ({ 'type': MessageType.QUERY_LATEST });
-var queryAllMsg = () => ({ 'type': MessageType.QUERY_ALL });
+var queryChainLengthMsg = () => ({
+    'type': MessageType.QUERY_LATEST
+});
+var queryAllMsg = () => ({
+    'type': MessageType.QUERY_ALL
+});
 
 var responseChainMsg = () => ({
     'type': MessageType.RESPONSE_BLOCKCHAIN,
