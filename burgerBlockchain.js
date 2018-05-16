@@ -54,6 +54,9 @@ class BurgerBlockchain {
         }
 
         const candidateBlock = new BurgerBlock(index, transactions, this.currentDifficulty, lastBlock.blockHash, minerAddress);
+
+        this.createMiningJob(candidateBlock);
+
         return candidateBlock;
     }
 }
