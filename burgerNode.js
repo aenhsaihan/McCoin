@@ -28,6 +28,10 @@ class BurgerNode {
       this.chain.resetChain();
     }
 
+    replaceChain(newChain) {
+      this.chain.blocks = newChain;
+    }
+
     getBlocks() {
         return this.chain.blocks;
     }
@@ -57,7 +61,7 @@ class BurgerNode {
             senderPubKey,
             senderSignature,
         } = transaction;
-        
+
         const burgerTransaction = new BurgerTransaction(from, to, value, fee, dateCreated, data, senderPubKey, senderSignature);
 
         const sentTransactionHash = transaction.transactionDataHash; // verify off of the generated transaction hash and if != dont push return false

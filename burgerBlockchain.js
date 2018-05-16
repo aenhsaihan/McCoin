@@ -22,7 +22,32 @@ class BurgerBlockchain {
     }
 
     addBlock(block) {
+        this.flushPendingTransactions(block);
         this.blocks.push(block);
+    }
+
+    flushPendingTransactions(block) {
+      const transactions = block.transactions;
+
+      let indexesForRemoval = [];
+      for (let i = 0; i < transactions.length; i++) {
+
+        const transaction = transactions[i];
+
+        for (let j = 0; j < this.pendingTransactions.length; j++) {
+          const pendingTransaction = this.pendingTransactions[j];
+
+          if (transaction.transactionDataHash === pendingTransaction.transactionDataHash) {
+            indexesForRemoval.push(j);
+          }
+        }
+      }
+
+      while (indexesForRemoval.length) {
+        const index = indexesForRemoval.shift();
+
+        this.pendingTransactions.splice(index, 1);
+      }
     }
 
     createMiningJob(block) {
@@ -39,14 +64,14 @@ class BurgerBlockchain {
 
     canAddBlock(block) {
         const lastBlock = this.getLastBlock();
-  
+
         if (block.index > lastBlock.index) {
             return true;
         } else {
             return false;
         }
     }
- 
+
     prepareCandidateBlock(minerAddress) {
         const lastBlock = this.getLastBlock();
         const index = lastBlock.index + 1;
