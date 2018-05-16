@@ -13,8 +13,9 @@ class BurgerTransaction {
         this.senderSignature = senderSignature;
         this.minedInBlockIndex = null;//int
         this.transferSuccessful = null;//bool
+        this.transactionDataHash = this.computetransactionDataHash();
     }
-    get transactionDataHash() {
+    computetransactionDataHash() {
         const transactionData = {
             from: this.from,
             to:this.to,
@@ -26,7 +27,7 @@ class BurgerTransaction {
         };
         const transactionDataHash = crypto.SHA256(JSON.stringify(transactionData));
     
-        return transactionDataHash;
+        return transactionDataHash.toString();
     }
     
 }

@@ -1,9 +1,9 @@
 const BurgerBlock = require('./burgerBlock');
+const BurgerTransaction = require('./burgerTransaction');
 
 class BurgerNode {
     constructor(burgerBlockchain) {
         this.chain = burgerBlockchain;
-        this.pendingTransactions = [];
         this.nodes = [];
     }
 
@@ -45,7 +45,28 @@ class BurgerNode {
         this.nodes.push(node);
     }
 
-    validateChain() {}
+    addPendingTransaction(transaction){
+        const {
+            from,
+            to,
+            value,
+            fee,
+            dateCreated,
+            data,
+            senderPubKey,
+            senderSignature,
+        } = transaction;
+        
+        const burgerTransaction = new BurgerTransaction(from, to, value, fee, dateCreated, data, senderPubKey, senderSignature);
+
+        const sentTransactionHash = transaction.transactionDataHash; // verify off of the generated transaction hash and if != dont push return false
+        this.chain.pendingTransactions.push(burgerTransaction);
+    }
+
+
+    validateChain() {
+
+    }
 }
 
 module.exports = BurgerNode;
