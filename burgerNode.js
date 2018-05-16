@@ -23,6 +23,10 @@ class BurgerNode {
         return block;
     }
 
+    resetChain() {
+      this.chain.resetChain();
+    }
+
     getBlocks() {
         return this.chain.blocks;
     }
