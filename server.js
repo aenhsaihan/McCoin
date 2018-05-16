@@ -59,12 +59,10 @@ app.post('/mining/submit-mined-block', (request, response) => {
 
 app.get('/mining/get-mining-job/:address', (request, response) => {
     const minerAddress = request.params.address;
-    const candidateBlock = burgerBlockchain.prepareCandidateBlock(minerAddress);
+    
+    const info = burgerNode.mine(minerAddress);
 
-    const miner = new BurgerMiner(candidateBlock, 0);
-    miner.mineBlock();
-
-    response.json(candidateBlock);
+    response.json(info);
 })
 
 app.post('/transactions/send', (req, res) => {
