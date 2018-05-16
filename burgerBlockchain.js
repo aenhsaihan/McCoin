@@ -1,10 +1,10 @@
 const BurgerBlock = require('./burgerBlock');
 
 class BurgerBlockchain {
-    constructor(pendingTransactions, currentDifficulty = 5) {
+    constructor(transactions =[], currentDifficulty = 5) {
         this.chainId = "0x0";
         this.blocks = [this.createGenesisBlock()];
-        this.pendingTransactions = pendingTransactions;
+        this.pendingTransactions = transactions;
         this.currentDifficulty = currentDifficulty;
 
         this.miningJobs = new Map();

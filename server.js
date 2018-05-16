@@ -39,6 +39,7 @@ app.get('/', (request, response) => {
     response.send('SANITY CHECKS')
 })
 
+
 app.get('/blocks', (request, response) => {
     response.json(burgerNode.getBlocks())
 })
@@ -53,6 +54,13 @@ app.post('/mining/submit-mined-block', (request, response) => {
     const newBlock = burgerNode.createNewBlock(0, 0);
     console.log('block added: ' + JSON.stringify(newBlock));
     response.send();
+})
+
+app.post('/transactions/send', (req, res) => {
+   //take in transaction object
+   //need to validate later <<<<---------------REMINDER!!!!!! --------------<<<<<<<<<---------
+   addTransactionToNode(req.body.transaction);
+   res.send("Transaction accepted!");
 })
 
 app.get('/peers', (req, res) => {
@@ -70,6 +78,10 @@ app.get('/debug', (req, res) => {
         "config": config
     });
 })
+
+var addTransactionToNode = (transaction)  => {
+        burgerNode.addPendingTransaction(transaction);
+}
 
 var initP2PServer = () => {
     var server = new WebSocket.Server({ port: p2p_port });
