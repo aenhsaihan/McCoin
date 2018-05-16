@@ -51,21 +51,11 @@ app.get('/blocks/:index', (request, response) => {
 })
 
 app.post('/mining/submit-mined-block', (request, response) => {
+    console.log(request.body.minedBlock);
     const newBlock = burgerNode.createNewBlock(0, 0);
     console.log('block added: ' + JSON.stringify(newBlock));
     response.send();
 })
-
-// app.get('/mining/get-mining-job/:address', (request, response) => {
-//     const minerAddress = request.params.address;
-
-//     const info = burgerNode.mine(minerAddress);
-
-//     broadcast(responseLatestMsg());
-
-//     response.json(info);
-// })
-
 
 app.get('/mining/get-mining-job/:address', (request, response) => {
     const minerAddress = request.params.address;

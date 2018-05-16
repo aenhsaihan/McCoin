@@ -33,8 +33,17 @@ class MinerProxy {
         return minerResponse;
     }
 
-    async submitMinedBlock() {
-        // TODO: Implementation
+    async submitMinedBlock(minedBlock) {
+        const options = {
+            method: 'POST',
+            uri: this.uri + '/mining/submit-mined-block',
+            body: {
+                minedBlock,
+            },
+            json: true
+        }
+        const response = await request(options);
+        return response;
     }
 }
 
