@@ -68,31 +68,8 @@ class BurgerNode {
         this.chain.pendingTransactions.push(burgerTransaction);
     }
 
-    mine(minerAddress){
-
-        const candidateBlock = this.chain.prepareCandidateBlock(minerAddress);
-
-        const miner = new BurgerMiner(candidateBlock.blockDataHash, 0);
-        const minedInfo = miner.mineBlock();
-        if(minedInfo){
-           const {
-                nonce,
-                dateCreated,
-                hash
-            } = minedInfo;
-
-            candidateBlock.nonce=nonce;
-            candidateBlock.dateCreated=dateCreated;
-            candidateBlock.blockHash=hash;
-
-            if(this.chain.canAddBlock(candidateBlock)){
-                this.chain.addBlock(candidateBlock);
-                return "Added To the Chain";
-            }
-            return "Block Already In chain";
-        }else{
-            return "Timedout";
-        }
+    addMinedBlock(minedBlock) {
+      this.chain.addMinedBlock(minedBlock);
     }
 
     validateChain() {

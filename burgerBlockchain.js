@@ -72,6 +72,28 @@ class BurgerBlockchain {
         }
     }
 
+    addMinedBlock(minedBlock) {
+      let block = this.miningJobs.get(minedBlock.blockDataHash);
+
+      const {
+        nonce,
+        dateCreated,
+        hash
+      } = minedBlock;
+
+      block.nonce = nonce;
+      block.dateCreated = dateCreated;
+      block.blockHash = hash;
+
+      if (this.canAddBlock(block)) {
+        this.addBlock(block);
+        this.miningJobs.delete(block.blockHash);
+        console.log('Submitted block has been added to chain');
+      } else {
+        console.log('Submitted block has failed to be added to chain');
+      }
+    }
+
     prepareCandidateBlock(minerAddress) {
         const lastBlock = this.getLastBlock();
         const index = lastBlock.index + 1;
