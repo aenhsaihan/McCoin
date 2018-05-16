@@ -1,9 +1,9 @@
 const BurgerBlock = require('./burgerBlock');
 
 class BurgerBlockchain {
-    constructor(transactions = [], currentDifficulty = 3) {
+    constructor(transactions = [], currentDifficulty = 3,blocks = [this.createGenesisBlock()]) {
         this.chainId = "0x0";
-        this.blocks = [this.createGenesisBlock()];
+        this.blocks = blocks;
         this.pendingTransactions = transactions;
         this.currentDifficulty = currentDifficulty;
 

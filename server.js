@@ -70,6 +70,7 @@ app.post('/transactions/send', (req, res) => {
     //take in transaction object
     //need to validate later <<<<---------------REMINDER!!!!!! --------------<<<<<<<<<---------
     addTransactionToNode(req.body.transaction);
+    broadcast(responseChainMsg());
     res.send("Transaction accepted!");
 })
 
@@ -156,10 +157,10 @@ var connectToPeers = (newPeers) => {
 };
 
 var handleBlockchainResponse = message => {
-  var receivedBlocks = JSON.parse(message.data).sort(
-    (b1, b2) => b1.index - b2.index
-  );
-  var latestBlockReceived = receivedBlocks[receivedBlocks.length - 1];
+
+  var receivedChain = JSON.parse(message.data);
+  receivedChain = new BurgerBlockchain(receivedChain.pendingTransactions,receivedChain.currentDifficulty,receivedChain.blocks);
+  var latestBlockReceived = receivedChain.getLastBlock();
   var latestBlockHeld = burgerNode.chain.getLastBlock();
   if (latestBlockReceived.index > latestBlockHeld.index) {
     console.log(
@@ -170,16 +171,27 @@ var handleBlockchainResponse = message => {
     );
     if (latestBlockHeld.hash === latestBlockReceived.previousHash) {
       console.log('We can append the received block to our chain');
-      burgerNode.chain.addBlock(latestBlockReceived);
+      burgerNode.replaceChain(receivedChain);
       broadcast(responseLatestMsg());
     } else if (receivedBlocks.length === 1) {
       console.log('We have to query the chain from our peer');
       broadcast(queryAllMsg());
     } else {
       console.log('Received blockchain is longer than current blockchain');
-      burgerNode.replaceChain(receivedBlocks);
+      burgerNode.replaceChain(receivedChain);
     }
   } else {
+    if(receivedChain.pendingTransactions){
+        if(receivedChain.pendingTransactions.length > burgerNode.chain.pendingTransactions.length){
+            console.log("updating the chain to match current pending Transactions");
+            burgerNode.replaceChain(receivedChain);
+        }else if (receivedChain.pendingTransactions.length < burgerNode.chain.pendingTransactions.length){
+            console.log('We have to query the chain from our peer because the transactions dont make sence');
+            broadcast(queryAllMsg());
+        }else{
+            console.log('The Pending Transactions lists are equal');
+        }
+    }
     console.log(
       'received blockchain is not longer than current blockchain. Do nothing'
     );
@@ -191,11 +203,11 @@ var queryAllMsg = () => ({ 'type': MessageType.QUERY_ALL });
 
 var responseChainMsg = () => ({
     'type': MessageType.RESPONSE_BLOCKCHAIN,
-    'data': JSON.stringify(burgerNode.chain.blocks)
+    'data': JSON.stringify(burgerNode.chain)
 });
 var responseLatestMsg = () => ({
     'type': MessageType.RESPONSE_BLOCKCHAIN,
-    'data': JSON.stringify([burgerNode.chain.getLastBlock()])
+    'data': JSON.stringify(burgerNode.chain)
 });
 
 var write = (ws, message) => ws.send(JSON.stringify(message));
