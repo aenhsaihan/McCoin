@@ -29,7 +29,7 @@ class BurgerNode {
     }
 
     replaceChain(newChain) {
-      this.chain.blocks = newChain;
+      this.chain = newChain;
     }
 
     getBlocks() {
