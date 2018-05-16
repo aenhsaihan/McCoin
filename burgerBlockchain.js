@@ -1,7 +1,7 @@
 const BurgerBlock = require('./burgerBlock');
 
 class BurgerBlockchain {
-    constructor(transactions = [], currentDifficulty = 5) {
+    constructor(transactions = [], currentDifficulty = 3) {
         this.chainId = "0x0";
         this.blocks = [this.createGenesisBlock()];
         this.pendingTransactions = transactions;
@@ -37,6 +37,16 @@ class BurgerBlockchain {
         return this.blocks[this.blocks.length - 1];
     }
 
+    canAddBlock(block) {
+        const lastBlock = this.getLastBlock();
+  
+        if (block.index > lastBlock.index) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+ 
     prepareCandidateBlock(minerAddress) {
         const lastBlock = this.getLastBlock();
         const index = lastBlock.index + 1;
