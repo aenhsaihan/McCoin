@@ -56,11 +56,17 @@ app.post('/mining/submit-mined-block', (request, response) => {
     response.send();
 })
 
+app.get('/mining/get-mining-job/:address', (request, response) => {
+    const minerAddress = request.params.address;
+    const candidateBlock = burgerBlockchain.prepareCandidateBlock(minerAddress);
+    response.json(candidateBlock);
+})
+
 app.post('/transactions/send', (req, res) => {
-   //take in transaction object
-   //need to validate later <<<<---------------REMINDER!!!!!! --------------<<<<<<<<<---------
-   addTransactionToNode(req.body.transaction);
-   res.send("Transaction accepted!");
+    //take in transaction object
+    //need to validate later <<<<---------------REMINDER!!!!!! --------------<<<<<<<<<---------
+    addTransactionToNode(req.body.transaction);
+    res.send("Transaction accepted!");
 })
 
 app.get('/peers', (req, res) => {
@@ -75,20 +81,21 @@ app.post('/peers/connect', (req, res) => {
 app.get('/debug', (req, res) => {
     res.json({
         "node": burgerNode,
-        "config": config
+        "config": config,
+        "candidateBlock": burgerNode.chain.prepareCandidateBlock('0000000000000000000001')
     });
 })
 
 
-var addTransactionToNode = (transaction)  => {
-        burgerNode.addPendingTransaction(transaction);
+var addTransactionToNode = (transaction) => {
+    burgerNode.addPendingTransaction(transaction);
 }
 
 app.get('/debug/reset-chain', (req, res) => {
-  burgerNode.resetChain();
-  res.json({
-    message: "The chain was reset to its genesis block"
-  });
+    burgerNode.resetChain();
+    res.json({
+        message: "The chain was reset to its genesis block"
+    });
 })
 
 

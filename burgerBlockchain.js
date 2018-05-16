@@ -1,7 +1,7 @@
 const BurgerBlock = require('./burgerBlock');
 
 class BurgerBlockchain {
-    constructor(transactions =[], currentDifficulty = 5) {
+    constructor(transactions = [], currentDifficulty = 5) {
         this.chainId = "0x0";
         this.blocks = [this.createGenesisBlock()];
         this.pendingTransactions = transactions;
@@ -30,7 +30,31 @@ class BurgerBlockchain {
     }
 
     resetChain() {
-      this.blocks = [this.createGenesisBlock()];
+        this.blocks = [this.createGenesisBlock()];
+    }
+
+    getLastBlock() {
+        return this.blocks[this.blocks.length - 1];
+    }
+
+    prepareCandidateBlock(minerAddress) {
+        const lastBlock = this.getLastBlock();
+        const index = lastBlock.index + 1;
+
+        const transactions = [];
+
+        for (let index = 0; index < this.pendingTransactions.length; index++) {
+            const transaction = this.pendingTransactions[index];
+            // TODO: Implementation
+            // if (valid) {
+            //      transactions.push(transaction)
+            // }
+
+            transactions.push(transaction);
+        }
+
+        const candidateBlock = new BurgerBlock(index, transactions, this.currentDifficulty, lastBlock.blockHash, minerAddress);
+        return candidateBlock;
     }
 }
 
