@@ -7,7 +7,7 @@ class BurgerTransaction {
         this.to = to;
         this.value = value;//in micro burgers
         this.fee= fee;//in micro burgers
-        this.dateCreated= dateCreated;
+        this.dateCreated= new Date(dateCreated).toISOString();
         this.data = data;
         this.senderPubKey=senderPubKey;
         this.senderSignature = senderSignature;
@@ -26,10 +26,10 @@ class BurgerTransaction {
             senderPubKey:this.senderPubKey
         };
         const transactionDataHash = crypto.SHA256(JSON.stringify(transactionData));
-    
+
         return transactionDataHash.toString();
     }
-    
+
 }
 
 module.exports = BurgerTransaction;
