@@ -4,11 +4,10 @@ const readline = require('readline-sync');
 let burgerWallet;
 
 const rawTransaction = {
-    "from": "c3293572dbe6ebc60de4a20ed0e21446cae66b17",
-    "to": "f51362b7351ef62253a227a77751ad9b2302f911",
-    "value": 250123,
-    "fee": 10,
-    "data": "KIM",
+    "to": "",
+    "value": 0,
+    "fee": 0,
+    "data": "",
 }
 
 var privateKey = readline.question("Enter private key [leave blank to generate new wallet]:");
@@ -28,6 +27,7 @@ for (let i = 0; i < keys.length; i++) {
 
 rawTransaction.dateCreated = new Date().toISOString();
 rawTransaction.senderPubKey = burgerWallet.publicKey;
+rawTransaction.from = burgerWallet.address;
 
 async function main() {
     const transaction = new BurgerTransaction(rawTransaction.from, rawTransaction.to, rawTransaction.value, rawTransaction.fee, rawTransaction.dateCreated, rawTransaction.data, rawTransaction.senderPubKey);
