@@ -152,17 +152,15 @@ var initErrorHandler = (ws) => {
 };
 
 var connectToPeers = (newPeers) => {
-    var peerAdded = false;
     newPeers.forEach((peer) => {
         const ws = new WebSocket(peer);
-        peerAdded = true;
         ws.on('open', () => initConnection(ws));
         ws.on('error', () => {
             console.log('connection failed')
         });
         
     });
-    return peerAdded;
+   
 };
 
 var peerExists = (peer) =>{
