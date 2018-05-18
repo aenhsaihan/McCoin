@@ -1,5 +1,6 @@
 const BurgerBlock = require('./burgerBlock');
 const BurgerTransaction = require('./burgerTransaction');
+const BurgerWallet = require('./burgerWallet');
 
 class BurgerBlockchain {
     constructor(transactions = [], currentDifficulty = 3,blocks = [this.createGenesisBlock()]) {
@@ -98,16 +99,19 @@ class BurgerBlockchain {
     prepareCandidateBlock(minerAddress) {
         const lastBlock = this.getLastBlock();
         const index = lastBlock.index + 1;
-
+        
         const transactions = [this.createCoinbaseTransaction(minerAddress)];
 
-        for (let index = 0; index < this.pendingTransactions.length; index++) {
-            const transaction = this.pendingTransactions[index];
+        for (let i = 0; i < this.pendingTransactions.length; i++) {
+            const transaction = this.pendingTransactions[i];
             // TODO: Implementation
-            // if (valid) {
-            //      transactions.push(transaction)
-            // }
-
+            transaction.minedInBlockIndex=index;
+            if(BurgerWallet.verify(transaction)){
+                transaction.transferSuccessful=true;
+            }else{
+                transaction.transferSuccessful=false; 
+            }
+        
             transactions.push(transaction);
         }
 
@@ -131,7 +135,8 @@ class BurgerBlockchain {
         ["0000000000000000000000000000000000000000",
         "0000000000000000000000000000000000000000"]
       )
-
+      coinbaseTransaction.transferSuccessful=true;
+      coinbaseTransaction.minedInBlockIndex=this.getLastBlock().index+1;
       return coinbaseTransaction;
     }
 }
