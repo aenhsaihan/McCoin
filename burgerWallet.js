@@ -1,7 +1,11 @@
 const CryptoJS = require('crypto-js');
+const request = require('request-promise');
 const EC = require('elliptic').ec;
 const secp256k1 = new EC('secp256k1');
 
+const host = process.argv[2];
+const port = process.argv[3];
+const uri = host + ':' + port;
 class BurgerWallet {
     constructor(privateKey) {
         this.key = null;
@@ -55,6 +59,22 @@ class BurgerWallet {
         return messageResponse;
     }
 
+    async send(transaction) {
+        const signedTransaction = this.sign(transaction);
+
+        const options = {
+            method: 'POST',
+            uri: uri + '/transactions/send',
+            body: {
+                transaction: signedTransaction,
+            },
+            json: true
+        }
+        const response = await request(options);
+        console.log(response);
+        return response;
+    }
+
     static recoverKeysFromPublicKey(publicKeyCompressed) {
         let pubKeyX = publicKeyCompressed.substring(0, 64)
         let pubKeyYOdd = parseInt(publicKeyCompressed.substring(64))
@@ -75,28 +95,5 @@ class BurgerWallet {
         return keyPair.verify(transactionDataHash, signature);
     }
 }
-
-// Sanity Checks =====================
- const wallet = new BurgerWallet();
- console.log(wallet);
-
-const message = {
-    "from": "c3293572dbe6ebc60de4a20ed0e21446cae66b17",
-    "to": "f51362b7351ef62253a227a77751ad9b2302f911",
-    "value": 250123,
-    "fee": 10,
-    "dateCreated": "2018-01-10T17:53:48.972Z",
-    "data": "funds",
-    "senderPubKey": wallet.publicKey
-}
-
-const signedTransaction = wallet.sign(message);
-console.log(signedTransaction);
-
-const recoveredWallet = new BurgerWallet(wallet.privateKey);
-console.log(recoveredWallet);
-
-const verification = BurgerWallet.verify(signedTransaction);
-console.log(verification);
 
 module.exports = BurgerWallet;
