@@ -75,8 +75,15 @@ app.get('/peers', (req, res) => {
 })
 
 app.post('/peers/connect', (req, res) => {
-    connectToPeers([req.body.peer]);
-    res.send("Success", 200);
+    if(peerExists(req.body.peer)){
+        res.status(400).send("FAILED: Peer already exists on the node!");
+    }
+    else{
+        connectToPeers([req.body.peer])
+       
+        res.status(200).send("Success");
+    }
+
 })
 
 app.get('/debug', (req, res) => {
@@ -145,14 +152,28 @@ var initErrorHandler = (ws) => {
 };
 
 var connectToPeers = (newPeers) => {
+    var peerAdded = false;
     newPeers.forEach((peer) => {
         const ws = new WebSocket(peer);
+        peerAdded = true;
         ws.on('open', () => initConnection(ws));
         ws.on('error', () => {
             console.log('connection failed')
         });
+        
     });
+    return peerAdded;
 };
+
+var peerExists = (peer) =>{
+    
+    for(i = 0; i < sockets.length; i++){
+        if(sockets[i].url === peer){
+            return true;
+        }
+    }
+    return false;
+}
 
 var handleBlockchainResponse = message => {
 
