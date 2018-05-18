@@ -1,6 +1,7 @@
 const BurgerBlock = require('./burgerBlock');
 const BurgerTransaction = require('./burgerTransaction');
 const BurgerMiner = require("./burgerMiner");
+const BurgerWallet = require('./burgerWallet');
 
 class BurgerNode {
     constructor(burgerBlockchain) {
@@ -66,7 +67,7 @@ class BurgerNode {
 
         const sentTransactionHash = transaction.transactionDataHash;
 
-        if (BurgerTransaction.isTransactionValid(burgerTransaction)) {
+        if (BurgerWallet.verify(burgerTransaction)) {
             this.chain.pendingTransactions.push(burgerTransaction);
             return true;
         }

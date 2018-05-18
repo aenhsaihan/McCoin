@@ -56,7 +56,6 @@ class BurgerWallet {
     }
 
     async send(transaction) {
-        transaction.senderSignature = this.publicKey;
         const signedTransaction = this.sign(transaction);
 
         const options = {

@@ -35,18 +35,6 @@ class BurgerTransaction {
         return transactionDataHash.toString();
     }
 
-    static isTransactionValid(signedTransaction) {
-        const keyPair = BurgerWallet.recoverKeysFromPublicKey(signedTransaction.senderPubKey);
-        const transactionDataHash = signedTransaction.transactionDataHash;
-
-        const signature = {
-            r: signedTransaction.senderSignature[0],
-            s: signedTransaction.senderSignature[1]
-        };
-
-        return keyPair.verify(transactionDataHash, signature);
-    }
-
 }
 
 module.exports = BurgerTransaction;
