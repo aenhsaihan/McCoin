@@ -19,7 +19,9 @@
     "dependencies": {
         "body-parser": "^1.18.2",
         "crypto-js": "^3.1.9-1",
+        "elliptic": "^6.4.0",
         "express": "^4.16.3",
+        "readline-sync": "^1.4.9",
         "request": "^2.86.0",
         "request-promise": "^4.2.2",
         "ws": "^5.1.1"

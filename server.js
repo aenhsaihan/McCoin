@@ -65,9 +65,13 @@ app.get('/mining/get-mining-job/:address', (request, response) => {
 app.post('/transactions/send', (req, res) => {
     //take in transaction object
     //need to validate later <<<<---------------REMINDER!!!!!! --------------<<<<<<<<<---------
-    addTransactionToNode(req.body.transaction);
-    broadcast(responseChainMsg());
-    res.send("Transaction accepted!");
+    const response = addTransactionToNode(req.body.transaction);
+    if (response) {
+        broadcast(responseChainMsg());
+        res.send("Transaction accepted!");
+    } else {
+        res.send("TRANSACTION REJECTED");
+    }
 })
 
 app.get('/peers', (req, res) => {
@@ -89,7 +93,7 @@ app.get('/debug', (req, res) => {
 
 
 var addTransactionToNode = (transaction) => {
-    burgerNode.addPendingTransaction(transaction);
+    return burgerNode.addPendingTransaction(transaction);
 }
 
 app.get('/debug/reset-chain', (req, res) => {
