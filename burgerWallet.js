@@ -1,4 +1,6 @@
 const CryptoJS = require('crypto-js');
+const Transaction = require('./burgerTransaction');
+
 const request = require('request-promise');
 const EC = require('elliptic').ec;
 const secp256k1 = new EC('secp256k1');
@@ -46,32 +48,27 @@ class BurgerWallet {
         this.address = address.toString();
     }
 
-    sign(message) {
-        const messageJSON = JSON.stringify(message);
-        const messageHash = CryptoJS.SHA256(messageJSON).toString();
-        const signature = this.key.sign(messageHash);
+    sign(transaction) {
+        const signature = this.key.sign(transaction.transactionDataHash);
         const senderSignature = [signature.r.toString(16), signature.s.toString(16)];
-        const messageResponse = {};
-        Object.assign(messageResponse, message);
-        messageResponse.transactionDataHash = messageHash;
-        messageResponse.senderSignature = senderSignature;
-
-        return messageResponse;
+        transaction.senderSignature = senderSignature;
+        return transaction;
     }
 
     async send(transaction) {
+        transaction.senderSignature = this.publicKey;
         const signedTransaction = this.sign(transaction);
 
         const options = {
             method: 'POST',
             uri: uri + '/transactions/send',
             body: {
-                transaction: signedTransaction,
+                transaction: signedTransaction.rawDocumentObject,
             },
             json: true
         }
+
         const response = await request(options);
-        console.log(response);
         return response;
     }
 

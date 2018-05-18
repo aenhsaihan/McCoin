@@ -25,11 +25,11 @@ class BurgerNode {
     }
 
     resetChain() {
-      this.chain.resetChain();
+        this.chain.resetChain();
     }
 
     replaceChain(newChain) {
-      this.chain = newChain;
+        this.chain = newChain;
     }
 
     getBlocks() {
@@ -50,7 +50,7 @@ class BurgerNode {
         this.nodes.push(node);
     }
 
-    addPendingTransaction(transaction){
+    addPendingTransaction(transaction) {
         const {
             from,
             to,
@@ -64,12 +64,18 @@ class BurgerNode {
 
         const burgerTransaction = new BurgerTransaction(from, to, value, fee, dateCreated, data, senderPubKey, senderSignature);
 
-        const sentTransactionHash = transaction.transactionDataHash; // verify off of the generated transaction hash and if != dont push return false
-        this.chain.pendingTransactions.push(burgerTransaction);
+        const sentTransactionHash = transaction.transactionDataHash;
+
+        if (BurgerTransaction.isTransactionValid(burgerTransaction)) {
+            this.chain.pendingTransactions.push(burgerTransaction);
+            return true;
+        }
+
+        return false;
     }
 
     addMinedBlock(minedBlock) {
-      this.chain.addMinedBlock(minedBlock);
+        this.chain.addMinedBlock(minedBlock);
     }
 
     validateChain() {
