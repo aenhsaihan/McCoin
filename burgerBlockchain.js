@@ -3,7 +3,7 @@ const BurgerTransaction = require('./burgerTransaction');
 const BurgerWallet = require('./burgerWallet');
 
 class BurgerBlockchain {
-    constructor(transactions = [], currentDifficulty = 3,blocks = [this.createGenesisBlock()]) {
+    constructor(transactions = [], currentDifficulty = 4,blocks = [this.createGenesisBlock()]) {
         this.chainId = "0x0";
         this.blocks = blocks;
         this.pendingTransactions = transactions;
@@ -99,7 +99,7 @@ class BurgerBlockchain {
     prepareCandidateBlock(minerAddress) {
         const lastBlock = this.getLastBlock();
         const index = lastBlock.index + 1;
-        
+
         const transactions = [this.createCoinbaseTransaction(minerAddress)];
 
         for (let i = 0; i < this.pendingTransactions.length; i++) {
@@ -109,9 +109,9 @@ class BurgerBlockchain {
             if(BurgerWallet.verify(transaction)){
                 transaction.transferSuccessful=true;
             }else{
-                transaction.transferSuccessful=false; 
+                transaction.transferSuccessful=false;
             }
-        
+
             transactions.push(transaction);
         }
 
@@ -138,6 +138,42 @@ class BurgerBlockchain {
       coinbaseTransaction.transferSuccessful=true;
       coinbaseTransaction.minedInBlockIndex=this.getLastBlock().index+1;
       return coinbaseTransaction;
+    }
+
+    getConfirmedTransactions() {
+        let confirmedTransactions = [];
+        this.blocks.forEach((block) => {
+            confirmedTransactions = confirmedTransactions.concat(block.transactions);
+        })
+        return confirmedTransactions;
+    }
+
+    getConfirmedBalanceOfAddress(address) {
+        let balance = 0;
+        this.getConfirmedTransactions().forEach((transaction) => {
+            if (transaction.from === address) {
+                balance -= transaction.value;
+            }
+            if (transaction.to === address) {
+                balance += transaction.value;
+            }
+        });
+        return balance;
+    }
+
+    getPendingBalanceOfAddress(address) {
+        let debit = 0;
+        let credit = 0;
+        this.pendingTransactions.forEach((transaction) => {
+            if (transaction.from === address) {
+                debit -= transaction.value;
+            }
+            if (transaction.to === address) {
+                credit += transaction.value;
+            }
+        });
+        let confirmedBalance = this.getConfirmedBalanceOfAddress(address);
+        return confirmedBalance + credit - debit;
     }
 }
 

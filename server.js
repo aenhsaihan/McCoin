@@ -74,6 +74,16 @@ app.post('/transactions/send', (req, res) => {
     }
 })
 
+app.get('/address/:address/balance', (req, res) => {
+    const address = req.params.address;
+    const confirmedBalance = burgerNode.chain.getConfirmedBalanceOfAddress(address);
+    const pendingBalance = burgerNode.chain.getPendingBalanceOfAddress(address);
+    res.json({
+        confirmedBalance: parseFloat(confirmedBalance),
+        pendingBalance
+    });
+})
+
 app.get('/peers', (req, res) => {
     res.send(burgerNode.nodes);
 })
@@ -84,7 +94,7 @@ app.post('/peers/connect', (req, res) => {
     }
     else{
         connectToPeers([req.body.peer])
-       
+
         res.status(200).send("Success");
     }
 
@@ -162,13 +172,13 @@ var connectToPeers = (newPeers) => {
         ws.on('error', () => {
             console.log('connection failed')
         });
-        
+
     });
-   
+
 };
 
 var peerExists = (peer) =>{
-    
+
     for(i = 0; i < sockets.length; i++){
         if(sockets[i].url === peer){
             return true;
