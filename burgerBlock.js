@@ -9,7 +9,7 @@ class BurgerBlock {
         this.blockDataHash = this.calculateBlockDataHash();
 
         this.nonce = 0;
-        this.dataCreated = new Date().toISOString();
+        this.dateCreated = new Date().toISOString();
         this.blockHash = null;
     }
 

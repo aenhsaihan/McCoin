@@ -15,7 +15,7 @@ class BurgerBlockchain {
     createGenesisBlock() {
         const genesisBlock = new BurgerBlock(
             0,
-            0,
+            [],
             0,
             '816534932c2b7154836da6afc367695e6337db8a921823784c14378abed4f7d7',
             0
@@ -138,6 +138,43 @@ class BurgerBlockchain {
       coinbaseTransaction.transferSuccessful=true;
       coinbaseTransaction.minedInBlockIndex=this.getLastBlock().index+1;
       return coinbaseTransaction;
+    }
+
+    getBalancesForAddress(address) {
+      let safeBalance = 0;
+      let unsafeBalance = 0;
+
+      const safeBlockIndex = this.blocks.length - 6;
+
+      this.blocks.forEach(block => {
+
+        if (block.index < safeBlockIndex) {
+          safeBalance += this.getBalanceOfTransactions(address, block.transactions);
+        } else {
+          unsafeBalance += this.getBalanceOfTransactions(address, block.transactions);
+        }
+      });
+
+      return {
+        safeBalance,
+        unsafeBalance
+      }
+    }
+
+    getBalanceOfTransactions(address, transactions) {
+      let balance = 0;
+
+      console.log(transactions);
+
+      transactions.forEach((transaction) => {
+        if (transaction.from === address) {
+          balance -= transaction.value;
+        } else if (transaction.to === address) {
+          balance += transaction.value;
+        }
+      });
+
+      return balance;
     }
 
     getConfirmedTransactions() {
