@@ -177,27 +177,6 @@ class BurgerBlockchain {
       return balance;
     }
 
-    getConfirmedTransactions() {
-        let confirmedTransactions = [];
-        this.blocks.forEach((block) => {
-            confirmedTransactions = confirmedTransactions.concat(block.transactions);
-        })
-        return confirmedTransactions;
-    }
-
-    getConfirmedBalanceOfAddress(address) {
-        let balance = 0;
-        this.getConfirmedTransactions().forEach((transaction) => {
-            if (transaction.from === address) {
-                balance -= transaction.value;
-            }
-            if (transaction.to === address) {
-                balance += transaction.value;
-            }
-        });
-        return balance;
-    }
-
     getPendingBalanceOfAddress(address) {
         let debit = 0;
         let credit = 0;
@@ -209,7 +188,8 @@ class BurgerBlockchain {
                 credit += transaction.value;
             }
         });
-        let confirmedBalance = this.getConfirmedBalanceOfAddress(address);
+        const {safeBalance, unsafeBalance} = this.getBalancesForAddress(address);
+        const confirmedBalance = safeBalance + unsafeBalance;
         return confirmedBalance + credit - debit;
     }
 }
