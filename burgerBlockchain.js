@@ -3,7 +3,7 @@ const BurgerTransaction = require('./burgerTransaction');
 const BurgerWallet = require('./burgerWallet');
 
 class BurgerBlockchain {
-    constructor(transactions = [], currentDifficulty = 3,blocks = [this.createGenesisBlock()]) {
+    constructor(transactions = [], currentDifficulty = 4,blocks = [this.createGenesisBlock()]) {
         this.chainId = "0x0";
         this.blocks = blocks;
         this.pendingTransactions = transactions;
@@ -15,7 +15,7 @@ class BurgerBlockchain {
     createGenesisBlock() {
         const genesisBlock = new BurgerBlock(
             0,
-            0,
+            [],
             0,
             '816534932c2b7154836da6afc367695e6337db8a921823784c14378abed4f7d7',
             0
@@ -99,7 +99,7 @@ class BurgerBlockchain {
     prepareCandidateBlock(minerAddress) {
         const lastBlock = this.getLastBlock();
         const index = lastBlock.index + 1;
-        
+
         const transactions = [this.createCoinbaseTransaction(minerAddress)];
 
         for (let i = 0; i < this.pendingTransactions.length; i++) {
@@ -109,9 +109,9 @@ class BurgerBlockchain {
             if(BurgerWallet.verify(transaction)){
                 transaction.transferSuccessful=true;
             }else{
-                transaction.transferSuccessful=false; 
+                transaction.transferSuccessful=false;
             }
-        
+
             transactions.push(transaction);
         }
 
@@ -138,6 +138,69 @@ class BurgerBlockchain {
       coinbaseTransaction.transferSuccessful=true;
       coinbaseTransaction.minedInBlockIndex=this.getLastBlock().index+1;
       return coinbaseTransaction;
+    }
+
+    getConfirmedBalanceOfAddress(address) {
+      const {safeBalance, unsafeBalance} = this.getBalancesForAddress(address);
+      const confirmedBalance = safeBalance + unsafeBalance;
+      return confirmedBalance;
+    }
+
+    getSafeBalanceOfAddress(address) {
+      const safeBlockIndex = this.blocks.length - 6;
+      return this.getBalanceForAddressUpToBlock(address, safeBlockIndex);
+    }
+
+    getConfirmedBalanceOfAddress(address) {
+      return this.getBalanceForAddressUpToBlock(address);
+    }
+
+    getBalanceForAddressUpToBlock(address, safeBlockIndex) {
+
+      if (safeBlockIndex == null) {
+        safeBlockIndex = this.blocks.length;
+      }
+
+      let balance = 0;
+
+      this.blocks.forEach(block => {
+        if (block.index < safeBlockIndex) {
+          balance += this.getBalanceOfTransactions(address, block.transactions);
+        }
+      });
+
+      return balance;
+    }
+
+    getBalanceOfTransactions(address, transactions) {
+      let balance = 0;
+
+      console.log(transactions);
+
+      transactions.forEach((transaction) => {
+        if (transaction.from === address) {
+          balance -= transaction.value;
+        } else if (transaction.to === address) {
+          balance += transaction.value;
+        }
+      });
+
+      return balance;
+    }
+
+    getPendingBalanceOfAddress(address) {
+        let debit = 0;
+        let credit = 0;
+        this.pendingTransactions.forEach((transaction) => {
+            if (transaction.from === address) {
+                debit -= transaction.value;
+            }
+            if (transaction.to === address) {
+                credit += transaction.value;
+            }
+        });
+        const confirmedBalance = this.getConfirmedBalanceOfAddress(address);
+        return confirmedBalance + credit - debit;
     }
 }
 
