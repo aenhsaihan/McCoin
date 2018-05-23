@@ -8,12 +8,13 @@ const requester = new MinerProxy(uri, "0x01234567890");
 
 async function mineForever() {
     const minedBlock = await requester.mine();
-    await requester.submitMinedBlock(minedBlock);
-    if (minedBlock.blockHash) {
-        setTimeout(() => {
-            mineForever();
-        }, 1000);
+    if (minedBlock) {
+        await requester.submitMinedBlock(minedBlock);
     }
+    
+    setTimeout(() => {
+        mineForever();
+    }, 1000);
 }
 
 mineForever();

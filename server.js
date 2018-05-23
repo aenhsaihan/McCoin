@@ -40,7 +40,6 @@ app.get('/', (request, response) => {
     response.send('SANITY CHECKS')
 })
 
-
 app.get('/blocks', (request, response) => {
     response.json(burgerNode.getBlocks())
 })
@@ -52,8 +51,8 @@ app.get('/blocks/:index', (request, response) => {
 })
 
 app.post('/mining/submit-mined-block', (request, response) => {
-    console.log(request.body.minedBlock);
-    burgerNode.addMinedBlock(request.body.minedBlock);
+    console.log(request.body);
+    burgerNode.addMinedBlock(request.body);
     response.send();
 })
 
@@ -66,7 +65,7 @@ app.get('/mining/get-mining-job/:address', (request, response) => {
 app.post('/transactions/send', (req, res) => {
     //take in transaction object
     //need to validate later <<<<---------------REMINDER!!!!!! --------------<<<<<<<<<---------
-    const response = addTransactionToNode(req.body.transaction);
+    const response = addTransactionToNode(req.body);
     if (response) {
         broadcast(responseChainMsg());
         res.send("Transaction accepted!");
@@ -99,10 +98,8 @@ app.post('/peers/connect', (req, res) => {
     }
     else{
         connectToPeers([req.body.peer])
-
         res.status(200).send("Success");
     }
-
 })
 
 app.get('/faucet/:address/:burgers', async (req, res) => {
@@ -120,7 +117,6 @@ app.get('/debug', (req, res) => {
     });
 })
 
-
 var addTransactionToNode = (transaction) => {
     return burgerNode.addPendingTransaction(transaction);
 }
@@ -131,7 +127,6 @@ app.get('/debug/reset-chain', (req, res) => {
         message: "The chain was reset to its genesis block"
     });
 })
-
 
 var initP2PServer = () => {
     var server = new WebSocket.Server({
