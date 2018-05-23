@@ -1,15 +1,15 @@
 const BurgerWallet = require('../burgerWallet');
 const BurgerTransaction = require('../burgerTransaction');
+const BurgerFaucet = require('../burgerFaucet');
 
 async function run() {
-    const burgerWallet = new BurgerWallet('b590898d253e4e697d151ff7cca833b7d312daa9');
-    console.log(burgerWallet);
+    const burgerWallet = BurgerFaucet.wallet;
 
     for (let iteration = 0; iteration < 5000; iteration++) {
         const receiver = new BurgerWallet();
         const rawTransaction = {
             "to": receiver.address,
-            "value": 1,
+            "value": 100,
             "fee": 1,
             "data": "",
         }
