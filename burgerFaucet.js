@@ -7,11 +7,17 @@ class BurgerFaucet {
         this.wallet = new BurgerWallet('831da5badbeacc2311f0bc301b19dea1f29ff67556345bcfafee9651f835809c');
     }
 
+    /**
+     * Transfers 100 burgers from the faucet to the recipient.
+     * 
+     * @param {string} recipient 
+     * @param {integer} amount 
+     */
     async sendBurgers(recipient, amount) {
         const burgerTransaction = new BurgerTransaction(
             this.wallet.address,
             recipient,
-            amount,
+            parseInt(amount),
             100,
             new Date(),
             "Generous burgers fresh from the oven",
@@ -21,12 +27,15 @@ class BurgerFaucet {
         return response;
     }
 
+    /**
+     * Creates a faucet transaction with generous preset values.
+     */
     createFaucetTransaction() {
         return new BurgerTransaction(
             '0x000000000000000000000000000000000000000',
             this.wallet.address,
-            '100000000000000000000',
-            '1000',
+            100000000,
+            1,
             new Date(),
             'The first burgers',
             '0x000000000000000000000000000000000000000'

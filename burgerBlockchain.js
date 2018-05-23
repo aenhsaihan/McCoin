@@ -156,12 +156,7 @@ class BurgerBlockchain {
       return this.getBalanceForAddressUpToBlock(address);
     }
 
-    getBalanceForAddressUpToBlock(address, safeBlockIndex) {
-
-      if (safeBlockIndex == null) {
-        safeBlockIndex = this.blocks.length;
-      }
-
+    getBalanceForAddressUpToBlock(address, safeBlockIndex = this.blocks.length) {
       let balance = 0;
 
       this.blocks.forEach(block => {
@@ -175,8 +170,6 @@ class BurgerBlockchain {
 
     getBalanceOfTransactions(address, transactions) {
       let balance = 0;
-
-      console.log(transactions);
 
       transactions.forEach((transaction) => {
         if (transaction.from === address) {
