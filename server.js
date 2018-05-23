@@ -76,11 +76,11 @@ app.post('/transactions/send', (req, res) => {
 
 app.get('/address/:address/balance', (req, res) => {
     const address = req.params.address;
-    const balances = burgerNode.chain.getBalancesForAddress(address);
 
-    const {safeBalance, unsafeBalance} = balances;
-    const confirmedBalance = safeBalance + unsafeBalance;
-    const pendingBalance = burgerNode.chain.getPendingBalanceOfAddress(address);
+    const safeBalance = burgerNode.getSafeBalanceOfAddress(address);
+    const confirmedBalance = burgerNode.getConfirmedBalanceOfAddress(address);
+    const pendingBalance = burgerNode.getPendingBalanceOfAddress(address);
+
     res.json({
         safeBalance,
         confirmedBalance: parseFloat(confirmedBalance),

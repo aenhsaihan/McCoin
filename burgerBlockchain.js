@@ -140,25 +140,36 @@ class BurgerBlockchain {
       return coinbaseTransaction;
     }
 
-    getBalancesForAddress(address) {
-      let safeBalance = 0;
-      let unsafeBalance = 0;
+    getConfirmedBalanceOfAddress(address) {
+      const {safeBalance, unsafeBalance} = this.getBalancesForAddress(address);
+      const confirmedBalance = safeBalance + unsafeBalance;
+      return confirmedBalance;
+    }
 
+    getSafeBalanceOfAddress(address) {
       const safeBlockIndex = this.blocks.length - 6;
+      return this.getBalanceForAddressUpToBlock(address, safeBlockIndex);
+    }
+
+    getConfirmedBalanceOfAddress(address) {
+      return this.getBalanceForAddressUpToBlock(address);
+    }
+
+    getBalanceForAddressUpToBlock(address, safeBlockIndex) {
+
+      if (safeBlockIndex == null) {
+        safeBlockIndex = this.blocks.length;
+      }
+
+      let balance = 0;
 
       this.blocks.forEach(block => {
-
         if (block.index < safeBlockIndex) {
-          safeBalance += this.getBalanceOfTransactions(address, block.transactions);
-        } else {
-          unsafeBalance += this.getBalanceOfTransactions(address, block.transactions);
+          balance += this.getBalanceOfTransactions(address, block.transactions);
         }
       });
 
-      return {
-        safeBalance,
-        unsafeBalance
-      }
+      return balance;
     }
 
     getBalanceOfTransactions(address, transactions) {
@@ -188,8 +199,7 @@ class BurgerBlockchain {
                 credit += transaction.value;
             }
         });
-        const {safeBalance, unsafeBalance} = this.getBalancesForAddress(address);
-        const confirmedBalance = safeBalance + unsafeBalance;
+        const confirmedBalance = this.getConfirmedBalanceOfAddress(address);
         return confirmedBalance + credit - debit;
     }
 }

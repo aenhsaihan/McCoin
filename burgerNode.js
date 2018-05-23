@@ -79,6 +79,19 @@ class BurgerNode {
         this.chain.addMinedBlock(minedBlock);
     }
 
+    getPendingBalanceOfAddress(address) {
+      const pendingBalance = this.chain.getPendingBalanceOfAddress(address);
+      return pendingBalance;
+    }
+
+    getConfirmedBalanceOfAddress(address) {
+      return this.chain.getConfirmedBalanceOfAddress(address);
+    }
+
+    getSafeBalanceOfAddress(address) {
+      return this.chain.getSafeBalanceOfAddress(address);
+    }
+
     validateChain() {
 
     }
