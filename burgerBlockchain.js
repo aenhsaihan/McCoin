@@ -1,6 +1,7 @@
 const BurgerBlock = require('./burgerBlock');
 const BurgerTransaction = require('./burgerTransaction');
 const BurgerWallet = require('./burgerWallet');
+const BurgerFaucet = require('./burgerFaucet');
 
 class BurgerBlockchain {
     constructor(transactions = [], currentDifficulty = 4,blocks = [this.createGenesisBlock()]) {
@@ -15,7 +16,7 @@ class BurgerBlockchain {
     createGenesisBlock() {
         const genesisBlock = new BurgerBlock(
             0,
-            [],
+            [BurgerFaucet.createFaucetTransaction()],
             0,
             '816534932c2b7154836da6afc367695e6337db8a921823784c14378abed4f7d7',
             0
@@ -155,12 +156,7 @@ class BurgerBlockchain {
       return this.getBalanceForAddressUpToBlock(address);
     }
 
-    getBalanceForAddressUpToBlock(address, safeBlockIndex) {
-
-      if (safeBlockIndex == null) {
-        safeBlockIndex = this.blocks.length;
-      }
-
+    getBalanceForAddressUpToBlock(address, safeBlockIndex = this.blocks.length) {
       let balance = 0;
 
       this.blocks.forEach(block => {
@@ -174,8 +170,6 @@ class BurgerBlockchain {
 
     getBalanceOfTransactions(address, transactions) {
       let balance = 0;
-
-      console.log(transactions);
 
       transactions.forEach((transaction) => {
         if (transaction.from === address) {

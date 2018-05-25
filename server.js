@@ -2,6 +2,7 @@ const express = require('express')
 const BurgerBlockchain = require('./burgerBlockchain')
 const BurgerNode = require('./burgerNode')
 const BurgerMiner = require('./burgerMiner')
+const BurgerFaucet = require('./burgerFaucet');
 var bodyParser = require('body-parser');
 var WebSocket = require("ws");
 
@@ -103,6 +104,13 @@ app.post('/peers/connect', (req, res) => {
     }
 
 })
+
+app.get('/faucet/:address/:burgers', async (req, res) => {
+  const address = req.params.address;
+  const burgers = req.params.burgers;
+  await BurgerFaucet.sendBurgers(address, burgers);
+  res.send("Request accepted!");
+});
 
 app.get('/debug', (req, res) => {
     res.json({
