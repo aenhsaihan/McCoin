@@ -51,14 +51,9 @@ app.get('/blocks/:index', (request, response) => {
 })
 
 app.post('/mining/submit-mined-block', (request, response) => {
-<<<<<<< HEAD
     console.log(request.body.minedBlock);
     burgerNode.addMinedBlock(request.body.minedBlock);
     broadcast(responseLatestMsg());
-=======
-    console.log(request.body);
-    burgerNode.addMinedBlock(request.body);
->>>>>>> 75d43f6ed6801f472479c8265a2c3056915b7d3c
     response.send();
 })
 
