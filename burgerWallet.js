@@ -90,16 +90,12 @@ class BurgerWallet {
      */
     async send(transaction) {
         const signedTransaction = this.sign(transaction);
-
         const options = {
             method: 'POST',
             uri: uri + '/transactions/send',
-            body: {
-                transaction: signedTransaction.rawDocumentObject,
-            },
+            body: signedTransaction,
             json: true
         }
-
         const response = await request(options);
         return response;
     }
