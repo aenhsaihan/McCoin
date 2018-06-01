@@ -67,7 +67,7 @@ class BurgerNode {
 
         const sentTransactionHash = transaction.transactionDataHash;
 
-        if (BurgerWallet.verify(burgerTransaction)) {
+        if (this.validateTransaction(burgerTransaction)) {
             this.chain.pendingTransactions.push(burgerTransaction);
             return true;
         }
