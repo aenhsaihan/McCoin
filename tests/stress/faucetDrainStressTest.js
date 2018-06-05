@@ -1,6 +1,6 @@
-const BurgerWallet = require('../burgerWallet');
-const BurgerTransaction = require('../burgerTransaction');
-const BurgerFaucet = require('../burgerFaucet');
+const BurgerWallet = require('../../burgerWallet');
+const BurgerTransaction = require('../../burgerTransaction');
+const BurgerFaucet = require('../../burgerFaucet');
 
 async function run() {
     const burgerWallet = BurgerFaucet.wallet;
@@ -10,7 +10,7 @@ async function run() {
         const rawTransaction = {
             "to": receiver.address,
             "value": 100,
-            "fee": 1,
+            "fee": 10,
             "data": "",
         }
         rawTransaction.dateCreated = new Date().toISOString();
