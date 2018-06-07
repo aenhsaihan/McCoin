@@ -6,8 +6,10 @@ const BurgerMiner = require('./burgerMiner')
 const BurgerFaucet = require('./burgerFaucet');
 var bodyParser = require('body-parser');
 var WebSocket = require("ws");
+var cors = require('cors');
 
 const app = express();
+app.use(cors());
 app.use(bodyParser.json());
 
 var http_port = process.env.HTTP_PORT || 3001;
