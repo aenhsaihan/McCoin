@@ -89,6 +89,11 @@ app.get('/address/:address/balance', (req, res) => {
     });
 })
 
+app.get('/address/:address/transactions', (req, res) => {
+    const address = req.params.address;
+    res.json(burgerNode.getTransactionsOfAddress(address));
+});
+
 app.get('/peers', (req, res) => {
     res.send(burgerNode.nodes);
 })

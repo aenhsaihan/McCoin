@@ -148,6 +148,19 @@ class BurgerNode {
     validateAddress(address) {
         return address.length === 40;
     }
+
+    getTransactionsOfAddress(address) {
+        let transactions = [];
+        this.chain.blocks.forEach((block) => {
+            const blockTransaction = block.transactions.filter((transaction) => {
+                return transaction.to === address || transaction.from === address;
+            });
+            if (blockTransaction.length > 0) {
+                transactions = transactions.concat(transactions, blockTransaction);
+            }
+        });
+        return transactions;
+    }
 }
 
 module.exports = BurgerNode;
