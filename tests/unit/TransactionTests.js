@@ -13,7 +13,7 @@ describe('BurgerNode', function () {
     let burgerBlockchain;
     let burgerNode;
 
-    describe('#validateTransaction', function() {
+    describe('#validateTransaction()', function() {
         beforeEach(function () {
             receiver = new BurgerWallet();
             burgerBlockchain = new BurgerBlockchain();
@@ -80,7 +80,7 @@ describe('BurgerNode', function () {
         });
     })
 
-    describe('#addPendingTransaction', function () {
+    describe('#addPendingTransaction()', function () {
 
         beforeEach(function () {
             receiver = new BurgerWallet();
