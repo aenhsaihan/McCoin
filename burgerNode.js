@@ -151,15 +151,30 @@ class BurgerNode {
 
     getTransactionsOfAddress(address) {
         let transactions = [];
-        this.chain.blocks.forEach((block) => {
-            const blockTransaction = block.transactions.filter((transaction) => {
+
+        // Use length-caching for-loop for optimization
+        for (let index = 0, blockHeight = this.chain.blocks.length; index < blockHeight; index++) {
+            const blockTransaction = this.chain.blocks[index].transactions.filter((transaction) => {
                 return transaction.to === address || transaction.from === address;
             });
             if (blockTransaction.length > 0) {
                 transactions = transactions.concat(transactions, blockTransaction);
             }
-        });
+        }
+
         return transactions;
+    }
+
+    getTransaction(transactionDataHash) {
+        let transactionData = {};
+        for (let index = 0, blockHeight = this.chain.blocks.length; index < blockHeight; index++) {
+            const tx = this.chain.blocks[index].transactions.find(transaction => transaction.transactionDataHash === transactionDataHash);
+            if (tx) {
+                transactionData = tx;
+                break;
+            }
+        }
+        return transactionData;
     }
 }
 

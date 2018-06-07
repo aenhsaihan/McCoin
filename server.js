@@ -94,6 +94,11 @@ app.get('/address/:address/transactions', (req, res) => {
     res.json(burgerNode.getTransactionsOfAddress(address));
 });
 
+app.get('/transactions/:transactionDataHash', (req, res) => {
+    const transactionDataHash = req.params.transactionDataHash;
+    res.json(burgerNode.getTransaction(transactionDataHash));
+});
+
 app.get('/peers', (req, res) => {
     res.send(burgerNode.nodes);
 })
