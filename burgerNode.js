@@ -65,8 +65,6 @@ class BurgerNode {
 
         const burgerTransaction = new BurgerTransaction(from, to, value, fee, dateCreated, data, senderPubKey, senderSignature);
 
-        const sentTransactionHash = transaction.transactionDataHash;
-
         if (this.validateTransaction(burgerTransaction)) {
             this.chain.pendingTransactions.push(burgerTransaction);
             return true;
@@ -123,24 +121,15 @@ class BurgerNode {
         const isReceiverCorrect = this.validateAddress(transaction.to);
         const isSignatureValid = BurgerWallet.verify(transaction);
         const isFeeGreaterThanEqualToMinimum = transaction.fee >= minimumFee;
-
         
-
         const expectedTransactionDataHash = BurgerTransaction.computetransactionDataHash(transaction);
         const isTransactionDataHashValid = expectedTransactionDataHash === transaction.transactionDataHash;
-
-        console.log(
-            areKeysEqual,
-            canPayFee,
-            willNotOverflow,
-            isValueGreaterThanOrEqualToZero,
-            isSenderCorrect,
-            isReceiverCorrect,
-            isSignatureValid,
-            isFeeGreaterThanEqualToMinimum,
-            isTransactionDataHashValid
-        )
-
+        
+        const transactionDataHashMustBeUnique = this.chain.pendingTransactions.filter(tx => tx.transactionDataHash === transaction.transactionDataHash).length === 0;
+        const isValidTransactionDataHash = transaction.transactionDataHash === BurgerTransaction.computetransactionDataHash(transaction);
+        const areNumbersOfCorrectType = typeof transaction.fee === 'number' && typeof transaction.value === 'number';
+        const transactionSuccessfulShouldNotBeTrue = !transaction.transferSuccessful;
+        
         return areKeysEqual
             && canPayFee
             && willNotOverflow
@@ -149,9 +138,16 @@ class BurgerNode {
             && isReceiverCorrect
             && isSignatureValid
             && isFeeGreaterThanEqualToMinimum
-            && isTransactionDataHashValid;
+            && isTransactionDataHashValid
+            && transactionDataHashMustBeUnique
+            && isValidTransactionDataHash
+            && areNumbersOfCorrectType
+            && transactionSuccessfulShouldNotBeTrue
     }
 
+    validateAddress(address) {
+        return address.length === 40;
+    }
 }
 
 module.exports = BurgerNode;

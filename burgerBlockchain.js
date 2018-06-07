@@ -105,7 +105,7 @@ class BurgerBlockchain {
       
       for (let i = 0; i < this.pendingTransactions.length; i++) {
         const transaction = this.pendingTransactions[i];
-        const senderBalance =getConfirmedBalanceOfAddress(transaction.from);
+        const senderBalance = this.getConfirmedBalanceOfAddress(transaction.from);
         const isBalanceEnough = (senderBalance - transaction.value - transaction.fee) >= 0;
         transaction.minedInBlockIndex=index;
         if (isBalanceEnough){
@@ -121,9 +121,9 @@ class BurgerBlockchain {
       this.createMiningJob(candidateBlock);
 
       // remove rejected transactions from pending transactions
-      const blockWithRejectedTransactions = new BurgerBlock();
-      blockWithRejectedTransactions.transactions = rejectedTransactions;
-      this.flushPendingTransactions(blockWithRejectedTransactions);
+      // const blockWithRejectedTransactions = new BurgerBlock();
+      // blockWithRejectedTransactions.transactions = rejectedTransactions;
+      // this.flushPendingTransactions(blockWithRejectedTransactions);
 
       return candidateBlock;
     }
