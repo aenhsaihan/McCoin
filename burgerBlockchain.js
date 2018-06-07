@@ -103,6 +103,7 @@ class BurgerBlockchain {
 
       const transactions = [this.createCoinbaseTransaction(minerAddress)];
       
+
       for (let i = 0; i < this.pendingTransactions.length; i++) {
         const transaction = this.pendingTransactions[i];
         const senderBalance =getConfirmedBalanceOfAddress(transaction.from);
@@ -119,11 +120,6 @@ class BurgerBlockchain {
       const candidateBlock = new BurgerBlock(index, transactions, this.currentDifficulty, lastBlock.blockHash, minerAddress);
 
       this.createMiningJob(candidateBlock);
-
-      // remove rejected transactions from pending transactions
-      const blockWithRejectedTransactions = new BurgerBlock();
-      blockWithRejectedTransactions.transactions = rejectedTransactions;
-      this.flushPendingTransactions(blockWithRejectedTransactions);
 
       return candidateBlock;
     }
