@@ -98,29 +98,34 @@ class BurgerBlockchain {
     }
 
     prepareCandidateBlock(minerAddress) {
-        const lastBlock = this.getLastBlock();
-        const index = lastBlock.index + 1;
+      const lastBlock = this.getLastBlock();
+      const index = lastBlock.index + 1;
 
-        const transactions = [this.createCoinbaseTransaction(minerAddress)];
-
-        for (let i = 0; i < this.pendingTransactions.length; i++) {
-            const transaction = this.pendingTransactions[i];
-            // TODO: Implementation
-            transaction.minedInBlockIndex=index;
-            if(BurgerWallet.verify(transaction)){
-                transaction.transferSuccessful=true;
-            }else{
-                transaction.transferSuccessful=false;
-            }
-
-            transactions.push(transaction);
+      const transactions = [this.createCoinbaseTransaction(minerAddress)];
+      
+      for (let i = 0; i < this.pendingTransactions.length; i++) {
+        const transaction = this.pendingTransactions[i];
+        const senderBalance =getConfirmedBalanceOfAddress(transaction.from);
+        const isBalanceEnough = (senderBalance - transaction.value - transaction.fee) >= 0;
+        transaction.minedInBlockIndex=index;
+        if (isBalanceEnough){
+          transaction.transferSuccessful=true;
+        } else {
+          transaction.transferSuccessful=false;
         }
+        transactions.push(transaction); 
+      }
 
-        const candidateBlock = new BurgerBlock(index, transactions, this.currentDifficulty, lastBlock.blockHash, minerAddress);
+      const candidateBlock = new BurgerBlock(index, transactions, this.currentDifficulty, lastBlock.blockHash, minerAddress);
 
-        this.createMiningJob(candidateBlock);
+      this.createMiningJob(candidateBlock);
 
-        return candidateBlock;
+      // remove rejected transactions from pending transactions
+      const blockWithRejectedTransactions = new BurgerBlock();
+      blockWithRejectedTransactions.transactions = rejectedTransactions;
+      this.flushPendingTransactions(blockWithRejectedTransactions);
+
+      return candidateBlock;
     }
 
     createCoinbaseTransaction(coinbaseAddress) {

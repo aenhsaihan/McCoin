@@ -67,7 +67,7 @@ class BurgerNode {
 
         const sentTransactionHash = transaction.transactionDataHash;
 
-        if (BurgerWallet.verify(burgerTransaction)) {
+        if (this.validateTransaction(burgerTransaction)) {
             this.chain.pendingTransactions.push(burgerTransaction);
             return true;
         }
@@ -95,6 +95,63 @@ class BurgerNode {
     validateChain() {
 
     }
+
+    validateTransaction(transaction) {
+        const validKeys = [
+            'from',
+            'to',
+            'value',
+            'fee',
+            'dateCreated',
+            'data',
+            'senderPubKey',
+            'senderSignature',
+            'minedInBlockIndex',
+            'transferSuccessful',
+            'transactionDataHash'
+        ];
+        const senderBalance = this.getConfirmedBalanceOfAddress(transaction.from);
+        const receiverBalance = this.getConfirmedBalanceOfAddress(transaction.to);
+        const objectKeys = Object.keys(transaction);
+        const minimumFee = 10;
+
+        const areKeysEqual = JSON.stringify(validKeys) === JSON.stringify(objectKeys);
+        const canPayFee = senderBalance > transaction.fee;
+        const willNotOverflow = (receiverBalance + transaction.value) >= receiverBalance;
+        const isValueGreaterThanOrEqualToZero = transaction.value >= 0;
+        const isSenderCorrect = this.validateAddress(transaction.from);
+        const isReceiverCorrect = this.validateAddress(transaction.to);
+        const isSignatureValid = BurgerWallet.verify(transaction);
+        const isFeeGreaterThanEqualToMinimum = transaction.fee >= minimumFee;
+
+        
+
+        const expectedTransactionDataHash = BurgerTransaction.computetransactionDataHash(transaction);
+        const isTransactionDataHashValid = expectedTransactionDataHash === transaction.transactionDataHash;
+
+        console.log(
+            areKeysEqual,
+            canPayFee,
+            willNotOverflow,
+            isValueGreaterThanOrEqualToZero,
+            isSenderCorrect,
+            isReceiverCorrect,
+            isSignatureValid,
+            isFeeGreaterThanEqualToMinimum,
+            isTransactionDataHashValid
+        )
+
+        return areKeysEqual
+            && canPayFee
+            && willNotOverflow
+            && isValueGreaterThanOrEqualToZero
+            && isSenderCorrect
+            && isReceiverCorrect
+            && isSignatureValid
+            && isFeeGreaterThanEqualToMinimum
+            && isTransactionDataHashValid;
+    }
+
 }
 
 module.exports = BurgerNode;
