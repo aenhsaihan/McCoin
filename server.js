@@ -1,4 +1,5 @@
 const express = require('express')
+const path = require('path');
 const BurgerBlockchain = require('./burgerBlockchain')
 const BurgerNode = require('./burgerNode')
 const BurgerMiner = require('./burgerMiner')
@@ -36,9 +37,7 @@ const initializeServer = () => {
     app.listen(http_port, () => console.log('Listening http on port: ' + http_port))
 }
 
-app.get('/', (request, response) => {
-    response.send('SANITY CHECKS')
-})
+app.use('/', express.static(path.resolve('public')));
 
 app.get('/blocks', (request, response) => {
     response.json(burgerNode.getBlocks())
@@ -51,8 +50,7 @@ app.get('/blocks/:index', (request, response) => {
 })
 
 app.post('/mining/submit-mined-block', (request, response) => {
-    console.log(request.body.minedBlock);
-    burgerNode.addMinedBlock(request.body.minedBlock);
+    burgerNode.addMinedBlock(request.body);
     broadcast(responseLatestMsg());
     response.send();
 })

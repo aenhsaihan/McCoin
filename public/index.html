@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>McCoin Blockchain</title>
+</head>
+
+<body>
+    <div>
+        <h1>McCoin Blockchain</h1>
+        <div>
+            <table border="1">
+                <thead>
+                    <th>Method</th>
+                    <th>Link</th>
+                    <th>Description</th>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>GET</td>
+                        <td>
+                            <a href="/">/</a>
+                        </td>
+                        <td>Home</td>
+                    </tr>
+                    <tr>
+                        <td>GET</td>
+                        <td>
+                            <a href="/debug">/debug</a>
+                        </td>
+                        <td>Debug</td>
+                    </tr>
+                    <tr>
+                        <td>GET</td>
+                        <td>
+                            <a href="/debug/reset-chain">/debug/reset-chain</a>
+                        </td>
+                        <td>Reset chain</td>
+                    </tr>
+                    <tr>
+                        <td>GET</td>
+                        <td>
+                            <a href="/blocks">/blocks</a>
+                        </td>
+                        <td>Blocks</td>
+                    </tr>
+                    <tr>
+                        <td>GET</td>
+                        <td>
+                            <a href="/blocks/:index">/blocks/:index</a>
+                        </td>
+                        <td>Open block at <b>:index</b></td>
+                    </tr>
+                    <tr>
+                        <td>POST</td>
+                        <td>
+                            <a href="/mining/submit-mined-block">//mining/submit-mined-block</a>
+                        </td>
+                        <td>Submit mined block</td>
+                    </tr>
+                    <tr>
+                        <td>GET</td>
+                        <td>
+                            <a href="/mining/get-mining-job/:address">/mining/get-mining-job/:address</a>
+                        </td>
+                        <td>Get mining job for <b>:address</b></td>
+                    </tr>
+                    <tr>
+                        <td>POST</td>
+                        <td>
+                            <a href="/transactions/send">/transactions/send</a>
+                        </td>
+                        <td>Send transaction</td>
+                    </tr>
+                    <tr>
+                        <td>GET</td>
+                        <td>
+                            <a href="/address/:address/balance">/address/:address/balance</a>
+                        </td>
+                        <td>Get balance of <b>:address</b></td>
+                    </tr>
+                    <tr>
+                        <td>GET</td>
+                        <td>
+                            <a href="/peers">/peers</a>
+                        </td>
+                        <td>Show peer list</td>
+                    </tr>
+                    <tr>
+                        <td>POST</td>
+                        <td>
+                            <a href="/peers/connect">/peers/connect</a>
+                        </td>
+                        <td>Connect to peer</td>
+                    </tr>
+                    <tr>
+                        <td>GET</td>
+                        <td>
+                            <a href="/faucet/:address/:burgers">/faucet/:address/:burgers</a>
+                        </td>
+                        <td>Request amount of <b>:burgers</b> to <b>:address</b> from the faucet</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+
+</html>
