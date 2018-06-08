@@ -1,3 +1,5 @@
+const SHA256 = require('crypto-js/sha256');
+
 const BurgerBlock = require('./burgerBlock');
 const BurgerTransaction = require('./burgerTransaction');
 const BurgerWallet = require('./burgerWallet');
@@ -31,26 +33,19 @@ class BurgerBlockchain {
 
     flushPendingTransactions(block) {
       const transactions = block.transactions;
-
-      let indexesForRemoval = [];
+      
       for (let i = 0; i < transactions.length; i++) {
-
-        const transaction = transactions[i];
-
         for (let j = 0; j < this.pendingTransactions.length; j++) {
           const pendingTransaction = this.pendingTransactions[j];
-
-          if (transaction.transactionDataHash === pendingTransaction.transactionDataHash) {
-            indexesForRemoval.push(j);
+          if (transactions[i].transactionDataHash === pendingTransaction.transactionDataHash) {
+            this.pendingTransactions[j] = 0;
           }
         }
       }
-
-      while (indexesForRemoval.length) {
-        const index = indexesForRemoval.shift();
-
-        this.pendingTransactions.splice(index, 1);
-      }
+  
+      this.pendingTransactions = this.pendingTransactions.filter((transaction) => {
+        return transaction !== 0
+      });
     }
 
     createMiningJob(block) {
@@ -68,7 +63,7 @@ class BurgerBlockchain {
     canAddBlock(block) {
         const lastBlock = this.getLastBlock();
 
-        if (block.index > lastBlock.index) {
+        if (block.index > lastBlock.index && this.isBlockValid(block)) {
             return true;
         } else {
             return false;
@@ -81,12 +76,12 @@ class BurgerBlockchain {
       const {
         nonce,
         dateCreated,
-        hash
+        blockHash
       } = minedBlock;
 
       block.nonce = nonce;
       block.dateCreated = dateCreated;
-      block.blockHash = hash;
+      block.blockHash = blockHash;
 
       if (this.canAddBlock(block)) {
         this.addBlock(block);
@@ -97,12 +92,15 @@ class BurgerBlockchain {
       }
     }
 
+    isBlockValid(block) {
+      return SHA256(block.blockDataHash + '|' + block.dateCreated + '|' + block.nonce).toString() === block.blockHash;
+    }
+
     prepareCandidateBlock(minerAddress) {
       const lastBlock = this.getLastBlock();
       const index = lastBlock.index + 1;
 
       const transactions = [this.createCoinbaseTransaction(minerAddress)];
-      
 
       for (let i = 0; i < this.pendingTransactions.length; i++) {
         const transaction = this.pendingTransactions[i];
@@ -125,7 +123,6 @@ class BurgerBlockchain {
     }
 
     createCoinbaseTransaction(coinbaseAddress) {
-
       const coinbaseTransaction = new BurgerTransaction(
         "0000000000000000000000000000000000000000",
         coinbaseAddress,
@@ -188,14 +185,14 @@ class BurgerBlockchain {
         let credit = 0;
         this.pendingTransactions.forEach((transaction) => {
             if (transaction.from === address) {
-                debit -= transaction.value;
+                debit += transaction.value;
             }
             if (transaction.to === address) {
                 credit += transaction.value;
             }
         });
         const confirmedBalance = this.getConfirmedBalanceOfAddress(address);
-        return confirmedBalance + credit - debit;
+        return (confirmedBalance - debit) + credit;
     }
 }
 
