@@ -6,6 +6,7 @@ class BurgerBlock {
         this.transactions = transactions;
         this.difficulty = difficulty;
         this.minedBy = minedBy;
+        this.prevBlockHash = prevBlockHash;
         this.blockDataHash = this.calculateBlockDataHash();
 
         this.nonce = 0;
@@ -18,7 +19,7 @@ class BurgerBlock {
             index: this.index,
             transactions: this.transactions,
             difficulty: this.difficulty,
-            prevBlockhash: this.prevBlockhash,
+            prevBlockHash: this.prevBlockHash,
             minedBy: this.minedBy
         };
         const blockdatahash = SHA256(JSON.stringify(blockData));
