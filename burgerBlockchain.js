@@ -20,9 +20,10 @@ class BurgerBlockchain {
             0,
             [BurgerFaucet.createFaucetTransaction()],
             0,
-            '816534932c2b7154836da6afc367695e6337db8a921823784c14378abed4f7d7',
-            0
+            '0000000000000000000000000000000000000000000000000000000000000000',
+            '0000000000000000000000000000000000000000'
         );
+        genesisBlock.blockHash = this.calculateBlockHash(genesisBlock);
         return genesisBlock;
     }
 
@@ -93,7 +94,11 @@ class BurgerBlockchain {
     }
 
     isBlockValid(block) {
-      return SHA256(block.blockDataHash + '|' + block.dateCreated + '|' + block.nonce).toString() === block.blockHash;
+      return this.calculateBlockHash(block) === block.blockHash;
+    }
+
+    calculateBlockHash(block) {
+      return SHA256(block.blockDataHash + '|' + block.dateCreated + '|' + block.nonce).toString();
     }
 
     prepareCandidateBlock(minerAddress) {
@@ -130,9 +135,11 @@ class BurgerBlockchain {
         0,
         new Date().toISOString(),
         'coinbase tx',
-        "0000000000000000000000000000000000000000",
-        ["0000000000000000000000000000000000000000",
-        "0000000000000000000000000000000000000000"]
+        "00000000000000000000000000000000000000000000000000000000000000000",
+        [
+          "0000000000000000000000000000000000000000000000000000000000000000",
+          "0000000000000000000000000000000000000000000000000000000000000000"
+        ],
       )
       coinbaseTransaction.transferSuccessful=true;
       coinbaseTransaction.minedInBlockIndex=this.getLastBlock().index+1;
