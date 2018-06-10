@@ -7,11 +7,12 @@ const BurgerFaucet = require('./burgerFaucet');
 
 class BurgerBlockchain {
     constructor(transactions = [], currentDifficulty = 4,blocks = [this.createGenesisBlock()]) {
-        this.chainId = "0x0";
+        this.chainId = blocks[0].blockHash;
         this.blocks = blocks;
         this.pendingTransactions = transactions;
         this.currentDifficulty = currentDifficulty;
-
+        
+        this.cumulativeDifficulty = 0;
         this.miningJobs = new Map();
     }
 
@@ -87,6 +88,7 @@ class BurgerBlockchain {
       if (this.canAddBlock(block)) {
         this.addBlock(block);
         this.miningJobs.delete(block.blockHash);
+        this.cumulativeDifficulty += block.difficulty;
         console.log('Submitted block has been added to chain');
       } else {
         console.log('Submitted block has failed to be added to chain');
