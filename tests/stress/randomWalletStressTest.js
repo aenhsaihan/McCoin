@@ -1,5 +1,5 @@
-const BurgerWallet = require('../burgerWallet');
-const BurgerTransaction = require('../burgerTransaction');
+const BurgerWallet = require('../../burgerWallet');
+const BurgerTransaction = require('../../burgerTransaction');
 
 async function run() {
     const burgerWallet = new BurgerWallet('5772cf41e652ee4b12128e909ad7a1e4331e909fef043fd251158f58a5982286');

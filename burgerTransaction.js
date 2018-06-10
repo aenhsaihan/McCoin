@@ -14,22 +14,22 @@ class BurgerTransaction {
         this.senderSignature = senderSignature;
         this.minedInBlockIndex = null; //int
         this.transferSuccessful = null; //bool
-        this.transactionDataHash = this.computetransactionDataHash();
+        this.transactionDataHash = BurgerTransaction.computetransactionDataHash(this);
     }
 
     get rawDocumentObject() {
         return Object.assign({}, this);
     }
 
-    computetransactionDataHash() {
+    static computetransactionDataHash(tx) {
         const transactionData = {
-            from: this.from,
-            to: this.to,
-            value: this.value,
-            fee: this.fee,
-            dateCreated: this.dateCreated,
-            data: this.data,
-            senderPubKey: this.senderPubKey
+            from: tx.from,
+            to: tx.to,
+            value: tx.value,
+            fee: tx.fee,
+            dateCreated: tx.dateCreated,
+            data: tx.data,
+            senderPubKey: tx.senderPubKey
         };
         const transactionDataHash = crypto.SHA256(JSON.stringify(transactionData));
         return transactionDataHash.toString();

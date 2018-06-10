@@ -65,9 +65,7 @@ class BurgerNode {
 
         const burgerTransaction = new BurgerTransaction(from, to, value, fee, dateCreated, data, senderPubKey, senderSignature);
 
-        const sentTransactionHash = transaction.transactionDataHash;
-
-        if (BurgerWallet.verify(burgerTransaction)) {
+        if (this.validateTransaction(burgerTransaction)) {
             this.chain.pendingTransactions.push(burgerTransaction);
             return true;
         }
@@ -94,6 +92,89 @@ class BurgerNode {
 
     validateChain() {
 
+    }
+
+    validateTransaction(transaction) {
+        const validKeys = [
+            'from',
+            'to',
+            'value',
+            'fee',
+            'dateCreated',
+            'data',
+            'senderPubKey',
+            'senderSignature',
+            'minedInBlockIndex',
+            'transferSuccessful',
+            'transactionDataHash'
+        ];
+        const senderBalance = this.getConfirmedBalanceOfAddress(transaction.from);
+        const receiverBalance = this.getConfirmedBalanceOfAddress(transaction.to);
+        const objectKeys = Object.keys(transaction);
+        const minimumFee = 10;
+
+        const areKeysEqual = JSON.stringify(validKeys) === JSON.stringify(objectKeys);
+        const canPayFee = senderBalance > transaction.fee;
+        const willNotOverflow = (receiverBalance + transaction.value) >= receiverBalance;
+        const isValueGreaterThanOrEqualToZero = transaction.value >= 0;
+        const isSenderCorrect = this.validateAddress(transaction.from);
+        const isReceiverCorrect = this.validateAddress(transaction.to);
+        const isSignatureValid = BurgerWallet.verify(transaction);
+        const isFeeGreaterThanEqualToMinimum = transaction.fee >= minimumFee;
+        
+        const expectedTransactionDataHash = BurgerTransaction.computetransactionDataHash(transaction);
+        const isTransactionDataHashValid = expectedTransactionDataHash === transaction.transactionDataHash;
+        
+        const transactionDataHashMustBeUnique = this.chain.pendingTransactions.filter(tx => tx.transactionDataHash === transaction.transactionDataHash).length === 0;
+        const isValidTransactionDataHash = transaction.transactionDataHash === BurgerTransaction.computetransactionDataHash(transaction);
+        const areNumbersOfCorrectType = typeof transaction.fee === 'number' && typeof transaction.value === 'number';
+        const transactionSuccessfulShouldNotBeTrue = !transaction.transferSuccessful;
+        
+        return areKeysEqual
+            && canPayFee
+            && willNotOverflow
+            && isValueGreaterThanOrEqualToZero
+            && isSenderCorrect
+            && isReceiverCorrect
+            && isSignatureValid
+            && isFeeGreaterThanEqualToMinimum
+            && isTransactionDataHashValid
+            && transactionDataHashMustBeUnique
+            && isValidTransactionDataHash
+            && areNumbersOfCorrectType
+            && transactionSuccessfulShouldNotBeTrue
+    }
+
+    validateAddress(address) {
+        return address.length === 40;
+    }
+
+    getTransactionsOfAddress(address) {
+        let transactions = [];
+
+        // Use length-caching for-loop for optimization
+        for (let index = 0, blockHeight = this.chain.blocks.length; index < blockHeight; index++) {
+            const blockTransaction = this.chain.blocks[index].transactions.filter((transaction) => {
+                return transaction.to === address || transaction.from === address;
+            });
+            if (blockTransaction.length > 0) {
+                transactions = transactions.concat(transactions, blockTransaction);
+            }
+        }
+
+        return transactions;
+    }
+
+    getTransaction(transactionDataHash) {
+        let transactionData = {};
+        for (let index = 0, blockHeight = this.chain.blocks.length; index < blockHeight; index++) {
+            const tx = this.chain.blocks[index].transactions.find(transaction => transaction.transactionDataHash === transactionDataHash);
+            if (tx) {
+                transactionData = tx;
+                break;
+            }
+        }
+        return transactionData;
     }
 }
 

@@ -1,12 +1,15 @@
 const express = require('express')
+const path = require('path');
 const BurgerBlockchain = require('./burgerBlockchain')
 const BurgerNode = require('./burgerNode')
 const BurgerMiner = require('./burgerMiner')
 const BurgerFaucet = require('./burgerFaucet');
 var bodyParser = require('body-parser');
 var WebSocket = require("ws");
+var cors = require('cors');
 
 const app = express();
+app.use(cors());
 app.use(bodyParser.json());
 
 var http_port = process.env.HTTP_PORT || 3001;
@@ -36,9 +39,7 @@ const initializeServer = () => {
     app.listen(http_port, () => console.log('Listening http on port: ' + http_port))
 }
 
-app.get('/', (request, response) => {
-    response.send('SANITY CHECKS')
-})
+app.use('/', express.static(path.resolve('public')));
 
 app.get('/blocks', (request, response) => {
     response.json(burgerNode.getBlocks())
@@ -51,8 +52,7 @@ app.get('/blocks/:index', (request, response) => {
 })
 
 app.post('/mining/submit-mined-block', (request, response) => {
-    console.log(request.body.minedBlock);
-    burgerNode.addMinedBlock(request.body.minedBlock);
+    burgerNode.addMinedBlock(request.body);
     broadcast(responseLatestMsg());
     response.send();
 })
@@ -88,6 +88,16 @@ app.get('/address/:address/balance', (req, res) => {
         pendingBalance
     });
 })
+
+app.get('/address/:address/transactions', (req, res) => {
+    const address = req.params.address;
+    res.json(burgerNode.getTransactionsOfAddress(address));
+});
+
+app.get('/transactions/:transactionDataHash', (req, res) => {
+    const transactionDataHash = req.params.transactionDataHash;
+    res.json(burgerNode.getTransaction(transactionDataHash));
+});
 
 app.get('/peers', (req, res) => {
     res.send(burgerNode.nodes);
