@@ -29,8 +29,33 @@ class BurgerNode {
         this.chain.resetChain();
     }
 
+    validateGenesisBlock(newChain) {
+      const genesisBlockHeld = this.chain.blocks[0].transactions[0];
+      const genesisBlockHeldKeys = Object.keys(genesisBlockHeld);
+      const genesisBlockHeldValues = Object.values(genesisBlockHeld);
+
+      const receivedGenesisBlock = newChain.blocks[0].transactions[0];
+      const receivedGenesisBlockKeys = Object.keys(receivedGenesisBlock);
+      const receivedGenesisBlockValues = Object.values(receivedGenesisBlock);
+
+      const areKeysEqual = JSON.stringify(genesisBlockHeldKeys) === JSON.stringify(receivedGenesisBlockKeys);
+      const areValuesEqual = JSON.stringify(genesisBlockHeldValues) === JSON.stringify(receivedGenesisBlockValues);
+
+      return areKeysEqual && areKeysEqual;
+    }
+
+    validateChain(newChain) {
+      const isGenesisBlockValid = this.validateGenesisBlock(newChain);
+
+      return isGenesisBlockValid;
+    }
+
     replaceChain(newChain) {
+      const isChainValid = this.validateChain(newChain);
+
+      if (isChainValid) {
         this.chain = newChain;
+      }
     }
 
     getBlocks() {
@@ -90,10 +115,6 @@ class BurgerNode {
       return this.chain.getSafeBalanceOfAddress(address);
     }
 
-    validateChain() {
-
-    }
-
     validateTransaction(transaction) {
         const validKeys = [
             'from',
@@ -121,15 +142,15 @@ class BurgerNode {
         const isReceiverCorrect = this.validateAddress(transaction.to);
         const isSignatureValid = BurgerWallet.verify(transaction);
         const isFeeGreaterThanEqualToMinimum = transaction.fee >= minimumFee;
-        
+
         const expectedTransactionDataHash = BurgerTransaction.computetransactionDataHash(transaction);
         const isTransactionDataHashValid = expectedTransactionDataHash === transaction.transactionDataHash;
-        
+
         const transactionDataHashMustBeUnique = this.chain.pendingTransactions.filter(tx => tx.transactionDataHash === transaction.transactionDataHash).length === 0;
         const isValidTransactionDataHash = transaction.transactionDataHash === BurgerTransaction.computetransactionDataHash(transaction);
         const areNumbersOfCorrectType = typeof transaction.fee === 'number' && typeof transaction.value === 'number';
         const transactionSuccessfulShouldNotBeTrue = !transaction.transferSuccessful;
-        
+
         return areKeysEqual
             && canPayFee
             && willNotOverflow
