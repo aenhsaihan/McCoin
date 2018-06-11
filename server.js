@@ -218,11 +218,11 @@ var handleBlockchainResponse = message => {
             ' Peer got: ' +
             latestBlockReceived.index
         );
-        if (latestBlockHeld.hash === latestBlockReceived.previousHash) {
+        if (latestBlockHeld.blockHash === latestBlockReceived.prevBlockHash) {
             console.log('We can append the received block to our chain');
             burgerNode.replaceChain(receivedChain);
             broadcast(responseLatestMsg());
-        } else if (receivedBlocks.length === 1) {
+        } else if (receivedChain.blocks.length === 1) {
             console.log('We have to query the chain from our peer');
             broadcast(queryAllMsg());
         } else {

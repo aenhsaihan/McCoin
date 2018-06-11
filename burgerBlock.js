@@ -5,6 +5,7 @@ class BurgerBlock {
         this.index = index; //We will pass the appoppriate index
         this.transactions = transactions;
         this.difficulty = difficulty;
+        this.prevBlockhash = prevBlockHash;
         this.minedBy = minedBy;
         this.blockDataHash = this.calculateBlockDataHash();
 
