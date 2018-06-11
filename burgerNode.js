@@ -41,7 +41,7 @@ class BurgerNode {
       const areKeysEqual = JSON.stringify(genesisBlockHeldKeys) === JSON.stringify(receivedGenesisBlockKeys);
       const areValuesEqual = JSON.stringify(genesisBlockHeldValues) === JSON.stringify(receivedGenesisBlockValues);
 
-      return areKeysEqual && areKeysEqual;
+      return areKeysEqual && areValuesEqual;
     }
 
     validateChain(newChain) {
