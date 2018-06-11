@@ -29,7 +29,25 @@ class BurgerNode {
         this.chain.resetChain();
     }
 
+    validateBlocks(newChain) {
+      // [Anar] maybe this logic should go in the chain?
+      let areBlocksValid = true;
+
+      for (var i = 0; i < newChain.blocks.length; i++) {
+        const newBlock = newChain.blocks[i]
+        const isBlockValid = BurgerBlock.validateBlock(newBlock);
+
+        if (!isBlockValid) {
+          areBlocksValid = false;
+          break;
+        }
+      }
+
+      return areBlocksValid;
+    }
+
     validateGenesisBlock(newChain) {
+      // [Anar] maybe this logic should go in the chain?
       const genesisBlockHeld = this.chain.blocks[0].transactions[0];
       const genesisBlockHeldKeys = Object.keys(genesisBlockHeld);
       const genesisBlockHeldValues = Object.values(genesisBlockHeld);
@@ -46,8 +64,10 @@ class BurgerNode {
 
     validateChain(newChain) {
       const isGenesisBlockValid = this.validateGenesisBlock(newChain);
+      const areBlocksValid = this.validateBlocks(newChain);
 
-      return isGenesisBlockValid;
+      return isGenesisBlockValid
+          && areBlocksValid;
     }
 
     replaceChain(newChain) {
@@ -55,6 +75,8 @@ class BurgerNode {
 
       if (isChainValid) {
         this.chain = newChain;
+      } else {
+        console.log('Received chain is not valid, rejecting...');
       }
     }
 

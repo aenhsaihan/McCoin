@@ -26,6 +26,36 @@ class BurgerBlock {
 
         return blockdatahash.toString();
     }
+
+    static validateBlock(block) {
+      const burgerBlockKeys = Object.keys(new BurgerBlock());
+      const currentBlockKeys = Object.keys(block);
+
+      const areKeysEqual = JSON.stringify(burgerBlockKeys) === JSON.stringify(currentBlockKeys);
+
+      const isIndexANumber = typeof block.index === 'number';
+      const isTransactionsAnArray = Array.isArray(block.transactions);
+      const isDifficultyANumber = typeof block.difficulty === 'number';
+      const isPrevBlockhashAString = typeof block.prevBlockhash === 'string';
+      // TODO: genesis block minedBy shouldn't default to zero?
+      const isMinedByAString = typeof block.minedBy === 'string';
+      const isBlockDataHashAString = typeof block.blockDataHash === 'string';
+      const isNonceANumber = typeof block.nonce === 'number';
+      const isDateCreatedAnObject = typeof block.dateCreated === 'string';
+      // TODO: genesis blockhash should not be null
+      const isBlockHashAString = typeof block.blockHash === 'string';
+
+      return areKeysEqual
+          && isIndexANumber
+          && isTransactionsAnArray
+          && isDifficultyANumber
+          && isPrevBlockhashAString
+          && isMinedByAString
+          && isBlockDataHashAString
+          && isNonceANumber
+          && isDateCreatedAnObject
+          && isBlockDataHashAString;
+    }
 }
 
 module.exports = BurgerBlock;
