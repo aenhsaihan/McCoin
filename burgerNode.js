@@ -23,7 +23,7 @@ class BurgerNode {
             "currentDifficulty": this.chain.currentDifficulty,
             "blocksCount": this.chain.blocks.length,
             "cumulativeDifficulty": this.chain.cumulativeDifficulty,
-            "confirmedTransactions": "Waiting for issue #11",
+            "confirmedTransactions": this.pullConfirmedTransactions().length,
             "pendingTransactions": this.chain.pendingTransactions.length
         }
     }
@@ -196,12 +196,13 @@ class BurgerNode {
         return transactionData;
     }
 
-    pullConfirmedTransactions = () => {
-        const confirmedTransactions = [];
+    pullConfirmedTransactions() {
+        let confirmedTransactions = [];
         this.chain.blocks.forEach(block => {
-            confirmedTransactions.concat(block.transactions);
+            console.log(block.transactions.length);
+            confirmedTransactions = confirmedTransactions.concat(block.transactions);
         });
-    
+        
         return confirmedTransactions;
     };
 
