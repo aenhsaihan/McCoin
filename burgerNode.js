@@ -33,11 +33,28 @@ class BurgerNode {
       // [Anar] maybe this logic should go in the chain?
       let areBlocksValid = true;
 
-      for (var i = 0; i < newChain.blocks.length; i++) {
+      for (var i = 1; i < newChain.blocks.length; i++) {
         const newBlock = newChain.blocks[i]
+        newBlock.prevBlockhash = "somestring"; // just for testing purposes!!!
         const isBlockValid = BurgerBlock.validateBlock(newBlock);
 
         if (!isBlockValid) {
+          areBlocksValid = false;
+          break;
+        }
+
+        let areTransactionsValid = true;
+        for (var j = 1; j < newBlock.transactions.length; j++) {
+          const newTransaction = newBlock.transactions[j];
+          const isTransactionValid = this.validateTransaction(newTransaction, newBlock);
+
+          if (!isTransactionValid) {
+            areTransactionsValid = false;
+            break;
+          }
+        }
+
+        if (!areTransactionsValid) {
           areBlocksValid = false;
           break;
         }
@@ -137,7 +154,7 @@ class BurgerNode {
       return this.chain.getSafeBalanceOfAddress(address);
     }
 
-    validateTransaction(transaction) {
+    validateTransaction(transaction, block) {
         const validKeys = [
             'from',
             'to',
@@ -171,7 +188,12 @@ class BurgerNode {
         const transactionDataHashMustBeUnique = this.chain.pendingTransactions.filter(tx => tx.transactionDataHash === transaction.transactionDataHash).length === 0;
         const isValidTransactionDataHash = transaction.transactionDataHash === BurgerTransaction.computetransactionDataHash(transaction);
         const areNumbersOfCorrectType = typeof transaction.fee === 'number' && typeof transaction.value === 'number';
-        const transactionSuccessfulShouldNotBeTrue = !transaction.transferSuccessful;
+        let transactionSuccessfulShouldNotBeTrue = !transaction.transferSuccessful; // make it let for now
+
+        if (block) {
+          // replay transactionSuccessful here using logic from the burgerChain prepare candidate block
+          transactionSuccessfulShouldNotBeTrue = true;
+        }
 
         return areKeysEqual
             && canPayFee
