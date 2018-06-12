@@ -74,6 +74,11 @@ class BurgerBlockchain {
     addMinedBlock(minedBlock) {
       let block = this.miningJobs.get(minedBlock.blockDataHash);
 
+      if (!block) {
+        console.log('REJECTED: Submitted block not found in jobs, possibly mined by someone else first.');
+        return false;
+      }
+
       const {
         nonce,
         dateCreated,
