@@ -67,7 +67,7 @@ app.get('/mining/get-mining-job/:address', (request, response) => {
     response.json(information);
 })
 app.get('/transactions/confirmed',(req, res) => {
-    const confirmedTransactions = pullConfirmedTransactions();
+    const confirmedTransactions =  burgerNode.pullConfirmedTransactions();
     res.json(confirmedTransactions)
 })
 app.get('/transactions/pending',(req, res) => {
@@ -166,14 +166,7 @@ var initConnection = (ws) => {
     write(ws, queryChainLengthMsg());
 };
 
-var pullConfirmedTransactions = () => {
-    const confirmedTransactions = [];
-    burgerNode.chain.blocks.forEach(block => {
-        confirmedTransactions.concat(block.transactions);
-    });
 
-    return confirmedTransactions;
-};
 
 var initMessageHandler = (ws) => {
     ws.on('message', (data) => {
