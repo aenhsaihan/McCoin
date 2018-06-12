@@ -48,8 +48,9 @@ class BurgerNode {
           const newTransaction = newBlock.transactions[j];
           const isTransactionValid = this.validateTransaction(newTransaction, newBlock);
           const isMinedInCorrectBlockIndex = newTransaction.minedInBlockIndex === newBlock.index;
+          const isTransferSuccessful = newTransaction.transferSuccessful === this.chain.canSenderTransferTransaction(newTransaction);
 
-          if (!isTransactionValid) {
+          if (!isTransactionValid && !isMinedInCorrectBlockIndex && !isTransferSuccessful) {
             areTransactionsValid = false;
             break;
           }
