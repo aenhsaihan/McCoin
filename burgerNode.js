@@ -55,10 +55,15 @@ class BurgerNode {
         const currentDifficulty = newBlock.difficulty;
         const isDifficultyValid = newBlock.blockHash.substring(0, currentDifficulty) === Array(currentDifficulty + 1).join('0');
 
+        // corroborate the previousHash value of the previous block
+        const previousBlock = newChain.blocks[i - 1];
+        const isPrevBlockHashValid = newBlock.prevBlockhash === previousBlock.blockHash;
+
         if (!areBlockKeysAndValuesValid
           || !doBlockDataHashesMatch
           || !doBlockHashesMatch
           || !isDifficultyValid
+          || !isPrevBlockHashValid
         ) {
           areBlocksValid = false;
           break;
