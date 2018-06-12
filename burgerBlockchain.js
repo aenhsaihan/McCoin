@@ -33,7 +33,7 @@ class BurgerBlockchain {
 
     flushPendingTransactions(block) {
       const transactions = block.transactions;
-      
+
       for (let i = 0; i < transactions.length; i++) {
         for (let j = 0; j < this.pendingTransactions.length; j++) {
           const pendingTransaction = this.pendingTransactions[j];
@@ -42,7 +42,7 @@ class BurgerBlockchain {
           }
         }
       }
-  
+
       this.pendingTransactions = this.pendingTransactions.filter((transaction) => {
         return transaction !== 0
       });
@@ -104,15 +104,9 @@ class BurgerBlockchain {
 
       for (let i = 0; i < this.pendingTransactions.length; i++) {
         const transaction = this.pendingTransactions[i];
-        const senderBalance = this.getConfirmedBalanceOfAddress(transaction.from);
-        const isBalanceEnough = (senderBalance - transaction.value - transaction.fee) >= 0;
-        transaction.minedInBlockIndex=index;
-        if (isBalanceEnough){
-          transaction.transferSuccessful=true;
-        } else {
-          transaction.transferSuccessful=false;
-        }
-        transactions.push(transaction); 
+        transaction.minedInBlockIndex = index;
+        transaction.transferSuccessful = this.canSenderTransferTransaction(transaction);
+        transactions.push(transaction);
       }
 
       const candidateBlock = new BurgerBlock(index, transactions, this.currentDifficulty, lastBlock.blockHash, minerAddress);
@@ -120,6 +114,16 @@ class BurgerBlockchain {
       this.createMiningJob(candidateBlock);
 
       return candidateBlock;
+    }
+
+    canSenderTransferTransaction(transaction) {
+      const senderBalance = this.getConfirmedBalanceOfAddress(transaction.from);
+      const isBalanceEnough = (senderBalance - transaction.value - transaction.fee) >= 0;
+      if (isBalanceEnough){
+        return true;
+      } else {
+        return false;
+      }
     }
 
     createCoinbaseTransaction(coinbaseAddress) {
