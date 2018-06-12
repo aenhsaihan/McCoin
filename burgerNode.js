@@ -35,10 +35,23 @@ class BurgerNode {
 
       for (var i = 1; i < newChain.blocks.length; i++) {
         const newBlock = newChain.blocks[i]
-        newBlock.prevBlockhash = "somestring"; // just for testing purposes!!!
-        const isBlockValid = BurgerBlock.validateBlock(newBlock);
+        // newBlock.prevBlockhash = "somestring"; // just for testing purposes!!!
+        const areBlockKeysAndValuesValid = BurgerBlock.validateBlock(newBlock); // just validating keys/values
 
-        if (!isBlockValid) {
+        // re-calculate block data hash
+        const compareBlock = new BurgerBlock(
+          newBlock.index,
+          newBlock.transactions,
+          newBlock.difficulty,
+          newBlock.prevBlockhash,
+          newBlock.minedBy
+        );
+        const doBlockDataHashesMatch = newBlock.blockDataHash === compareBlock.blockDataHash;
+
+        // re-calculate block hash
+        const doBlockHashesMatch = this.chain.isBlockValid(newBlock);
+
+        if (!areBlockKeysAndValuesValid || !doBlockDataHashesMatch || !doBlockHashesMatch) {
           areBlocksValid = false;
           break;
         }
