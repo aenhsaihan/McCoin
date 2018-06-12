@@ -1,4 +1,4 @@
-const SHA256 = require('crypto-js/sha256');
+const HashProvider = require('./hashProvider');
 
 class BurgerMiner {
 
@@ -39,7 +39,12 @@ class BurgerMiner {
 
   calculateHash(nonce = 0) {
     this.dateCreated = new Date().toISOString();
-    return SHA256(this.blockDataHash + '|' + this.dateCreated + '|' + nonce).toString();
+    const block = {
+      blockDataHash: this.blockDataHash,
+      dateCreated: this.dateCreated,
+      nonce: nonce
+    }
+    return HashProvider.calculateBlockHash(block);
   }
 }
 
