@@ -5,7 +5,7 @@ const BurgerFaucet = require('../../burgerFaucet');
 async function run() {
     const burgerWallet = BurgerFaucet.wallet;
 
-    for (let iteration = 0; iteration < 500; iteration++) {
+    for (let iteration = 0; iteration < 5000; iteration++) {
         const receiver = new BurgerWallet();
         const rawTransaction = {
             "to": receiver.address,
