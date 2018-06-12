@@ -47,6 +47,7 @@ class BurgerNode {
         for (var j = 1; j < newBlock.transactions.length; j++) {
           const newTransaction = newBlock.transactions[j];
           const isTransactionValid = this.validateTransaction(newTransaction, newBlock);
+          const isMinedInCorrectBlockIndex = newTransaction.minedInBlockIndex === newBlock.index;
 
           if (!isTransactionValid) {
             areTransactionsValid = false;
