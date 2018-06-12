@@ -76,6 +76,16 @@ class BurgerNode {
         const previousBlock = newChain.blocks[i - 1];
         const isPrevBlockHashValid = newBlock.prevBlockhash === previousBlock.blockHash;
 
+        if (!areBlockKeysAndValuesValid
+          || !doBlockDataHashesMatch
+          || !doBlockHashesMatch
+          || !isDifficultyValid
+          || !isPrevBlockHashValid
+        ) {
+          areBlocksValid = false;
+          break;
+        }
+
         let areTransactionsValid = this.validateTransactionsOfBlock(newBlock);
 
         if (!areTransactionsValid) {
