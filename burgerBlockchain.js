@@ -198,6 +198,18 @@ class BurgerBlockchain {
         const confirmedBalance = this.getConfirmedBalanceOfAddress(address);
         return (confirmedBalance - debit) + credit;
     }
+
+    calculateCumulativeDifficulty(blocks = this.blocks) {
+      let cumulativeDifficulty = 0;
+
+      for (let i = 0; i < blocks.length; i++) {
+        const block = blocks[i];
+
+        cumulativeDifficulty += Math.pow(16, block.difficulty);
+      }
+
+      return cumulativeDifficulty;
+    }
 }
 
 module.exports = BurgerBlockchain

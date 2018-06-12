@@ -123,8 +123,10 @@ class BurgerNode {
 
     replaceChain(newChain) {
       const isChainValid = this.validateChain(newChain);
+      const hasMoreCumulativeDifficulty = newChain.calculateCumulativeDifficulty() > this.chain.calculateCumulativeDifficulty();
 
-      if (isChainValid) {
+      if (isChainValid && hasMoreCumulativeDifficulty) {
+        // [Anar] TODO: clear mining jobs if cumulativeDifficulty is higher than current chain
         this.chain = newChain;
       } else {
         console.log('Received chain is not valid, rejecting...');
