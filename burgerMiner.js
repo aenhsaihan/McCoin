@@ -1,50 +1,66 @@
+const SHA256 = require('crypto-js/sha256');
 const HashProvider = require('./hashProvider');
 
 class BurgerMiner {
 
-  constructor(blockDataHash, nonce = 0, difficulty = 2) {
-    this.blockDataHash = blockDataHash;
-    this.nonce = nonce;
-    this.hash = '0';
-    this.dateCreated = new Date();
-    this.difficulty = difficulty
+  constructor() {
+    this.nonce = 0; 
+    this.blockHash = '';
     this.timeout = 30000; // in milliseconds
   }
 
-  mineBlock() {
-    const difficulty = this.difficulty;
+  mineBlock(blockDataHash, difficulty) {
+    this.blockDataHash = blockDataHash;
+    this.difficulty = difficulty;
 
-    const startDate = new Date().getTime();
-    const endDate = new Date().getTime() + this.timeout;
+    const endTime = new Date().getTime() + this.timeout;
+    const target = Array(this.difficulty + 1).join('0');
 
-    while (this.hash.substring(0, difficulty) !== Array(difficulty + 1).join('0')) {
-      if (new Date().getTime() > endDate) {
+    while (this.blockHash.substring(0, this.difficulty) !== target) {
+      if (new Date().getTime() > endTime) {
         console.log("TIMED OUT: Request new block candidate...");
         return false;
       }
       this.nonce++;
-      this.hash = this.calculateHash(this.nonce);
-      console.log(this.nonce, this.hash);
+      this.blockHash = this.calculateHash(this.nonce);
+      console.log(this.nonce, this.blockHash);
     }
 
-    console.log("BLOCK MINED: " + this.hash);
+    console.log("BLOCK MINED: " + this.blockHash);
+
+    const currentState = this.resetInstance();
 
     return ({
-      "blockDataHash": this.blockDataHash,
-      "dateCreated": this.dateCreated,
-      "nonce": this.nonce,
-      "blockHash": this.hash
+      "blockDataHash": currentState.blockDataHash,
+      "dateCreated": currentState.dateCreated,
+      "nonce": currentState.nonce,
+      "blockHash": currentState.blockHash
     })
+  }
+
+  /**
+   * Reset the instance variables to prepare the miner
+   * for the next mining job.
+   */
+  resetInstance() {
+    const values = {};
+    Object.assign(values, this);
+
+    this.blockDataHash = '';
+    this.nonce = 0;
+    this.blockHash = '';
+    this.dateCreated = '';
+    return values;
   }
 
   calculateHash(nonce = 0) {
     this.dateCreated = new Date().toISOString();
-    const block = {
+    const blockData = {
       blockDataHash: this.blockDataHash,
       dateCreated: this.dateCreated,
       nonce: nonce
     }
-    return HashProvider.calculateBlockHash(block);
+    return HashProvider.calculateBlockHash(blockData);
   }
 }
 
