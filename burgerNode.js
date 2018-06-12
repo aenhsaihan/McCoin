@@ -29,6 +29,23 @@ class BurgerNode {
         this.chain.resetChain();
     }
 
+    validateTransactionsOfBlock(block) {
+      let areTransactionsValid = true;
+      for (let i = 1; i < block.transactions.length; i++) {
+        const newTransaction = block.transactions[i];
+        const isTransactionValid = this.validateTransaction(newTransaction, block);
+        const isMinedInCorrectBlockIndex = newTransaction.minedInBlockIndex === block.index;
+        const isTransferSuccessful = newTransaction.transferSuccessful === this.chain.canSenderTransferTransaction(newTransaction);
+
+        if (!isTransactionValid && !isMinedInCorrectBlockIndex && !isTransferSuccessful) {
+          areTransactionsValid = false;
+          break;
+        }
+      }
+
+      return areTransactionsValid;
+    }
+
     validateBlocks(newChain) {
       // [Anar] maybe this logic should go in the chain?
       let areBlocksValid = true;
@@ -59,28 +76,7 @@ class BurgerNode {
         const previousBlock = newChain.blocks[i - 1];
         const isPrevBlockHashValid = newBlock.prevBlockhash === previousBlock.blockHash;
 
-        if (!areBlockKeysAndValuesValid
-          || !doBlockDataHashesMatch
-          || !doBlockHashesMatch
-          || !isDifficultyValid
-          || !isPrevBlockHashValid
-        ) {
-          areBlocksValid = false;
-          break;
-        }
-
-        let areTransactionsValid = true;
-        for (var j = 1; j < newBlock.transactions.length; j++) {
-          const newTransaction = newBlock.transactions[j];
-          const isTransactionValid = this.validateTransaction(newTransaction, newBlock);
-          const isMinedInCorrectBlockIndex = newTransaction.minedInBlockIndex === newBlock.index;
-          const isTransferSuccessful = newTransaction.transferSuccessful === this.chain.canSenderTransferTransaction(newTransaction);
-
-          if (!isTransactionValid && !isMinedInCorrectBlockIndex && !isTransferSuccessful) {
-            areTransactionsValid = false;
-            break;
-          }
-        }
+        let areTransactionsValid = this.validateTransactionsOfBlock(newBlock);
 
         if (!areTransactionsValid) {
           areBlocksValid = false;
