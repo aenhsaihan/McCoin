@@ -66,7 +66,14 @@ app.get('/mining/get-mining-job/:address', (request, response) => {
     const information = burgerNode.chain.prepareCandidateBlock(minerAddress);
     response.json(information);
 })
+app.get('/transactions/confirmed',(req, res) => {
+    const confirmedTransactions =  burgerNode.pullConfirmedTransactions();
+    res.json(confirmedTransactions)
+})
+app.get('/transactions/pending',(req, res) => {
 
+    res.json(burgerNode.chain.pendingTransactions)
+})
 app.post('/transactions/send', (req, res) => {
     //take in transaction object
     //need to validate later <<<<---------------REMINDER!!!!!! --------------<<<<<<<<<---------
@@ -158,6 +165,8 @@ var initConnection = (ws) => {
     initErrorHandler(ws);
     write(ws, queryChainLengthMsg());
 };
+
+
 
 var initMessageHandler = (ws) => {
     ws.on('message', (data) => {

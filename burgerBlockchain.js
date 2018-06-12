@@ -1,9 +1,8 @@
-const SHA256 = require('crypto-js/sha256');
-
 const BurgerBlock = require('./burgerBlock');
 const BurgerTransaction = require('./burgerTransaction');
 const BurgerWallet = require('./burgerWallet');
 const BurgerFaucet = require('./burgerFaucet');
+const HashProvider = require('./hashProvider');
 
 class BurgerBlockchain {
     constructor(transactions = [], currentDifficulty = 4,blocks = [this.createGenesisBlock()]) {
@@ -100,7 +99,7 @@ class BurgerBlockchain {
     }
 
     calculateBlockHash(block) {
-      return SHA256(block.blockDataHash + '|' + block.dateCreated + '|' + block.nonce).toString();
+      return HashProvider.calculateBlockHash(block);
     }
 
     prepareCandidateBlock(minerAddress) {

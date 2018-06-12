@@ -1,5 +1,4 @@
-const crypto = require('crypto-js');
-const BurgerWallet = require('./burgerWallet');
+const HashProvider = require('./hashProvider');
 
 class BurgerTransaction {
 
@@ -31,8 +30,7 @@ class BurgerTransaction {
             data: tx.data,
             senderPubKey: tx.senderPubKey
         };
-        const transactionDataHash = crypto.SHA256(JSON.stringify(transactionData));
-        return transactionDataHash.toString();
+        return HashProvider.calculateTransactionDataHash(transactionData);
     }
 
 }
