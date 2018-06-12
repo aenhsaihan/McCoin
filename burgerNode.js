@@ -195,6 +195,17 @@ class BurgerNode {
         }
         return transactionData;
     }
+
+    pullConfirmedTransactions = () => {
+        const confirmedTransactions = [];
+        this.chain.blocks.forEach(block => {
+            confirmedTransactions.concat(block.transactions);
+        });
+    
+        return confirmedTransactions;
+    };
+
+
 }
 
 module.exports = BurgerNode;
