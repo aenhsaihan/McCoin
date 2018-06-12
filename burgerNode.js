@@ -51,7 +51,15 @@ class BurgerNode {
         // re-calculate block hash
         const doBlockHashesMatch = this.chain.isBlockValid(newBlock);
 
-        if (!areBlockKeysAndValuesValid || !doBlockDataHashesMatch || !doBlockHashesMatch) {
+        // corroborate hash's difficulty
+        const currentDifficulty = newBlock.difficulty;
+        const isDifficultyValid = newBlock.blockHash.substring(0, currentDifficulty) === Array(currentDifficulty + 1).join('0');
+
+        if (!areBlockKeysAndValuesValid
+          || !doBlockDataHashesMatch
+          || !doBlockHashesMatch
+          || !isDifficultyValid
+        ) {
           areBlocksValid = false;
           break;
         }
