@@ -1,17 +1,17 @@
-const SHA256 = require('crypto-js/sha256');
-
 const BurgerBlock = require('./burgerBlock');
 const BurgerTransaction = require('./burgerTransaction');
 const BurgerWallet = require('./burgerWallet');
 const BurgerFaucet = require('./burgerFaucet');
+const HashProvider = require('./hashProvider');
 
 class BurgerBlockchain {
     constructor(transactions = [], currentDifficulty = 4,blocks = [this.createGenesisBlock()]) {
-        this.chainId = "0x0";
+        this.chainId = blocks[0].blockHash;
         this.blocks = blocks;
         this.pendingTransactions = transactions;
         this.currentDifficulty = currentDifficulty;
-
+        
+        this.cumulativeDifficulty = 0;
         this.miningJobs = new Map();
     }
 
@@ -20,9 +20,10 @@ class BurgerBlockchain {
             0,
             [BurgerFaucet.createFaucetTransaction()],
             0,
-            '816534932c2b7154836da6afc367695e6337db8a921823784c14378abed4f7d7',
-            0
+            '0000000000000000000000000000000000000000000000000000000000000000',
+            '0000000000000000000000000000000000000000'
         );
+        genesisBlock.blockHash = this.calculateBlockHash(genesisBlock);
         return genesisBlock;
     }
 
@@ -86,6 +87,7 @@ class BurgerBlockchain {
       if (this.canAddBlock(block)) {
         this.addBlock(block);
         this.miningJobs.delete(block.blockHash);
+        this.cumulativeDifficulty += block.difficulty;
         console.log('Submitted block has been added to chain');
       } else {
         console.log('Submitted block has failed to be added to chain');
@@ -93,7 +95,11 @@ class BurgerBlockchain {
     }
 
     isBlockValid(block) {
-      return SHA256(block.blockDataHash + '|' + block.dateCreated + '|' + block.nonce).toString() === block.blockHash;
+      return this.calculateBlockHash(block) === block.blockHash;
+    }
+
+    calculateBlockHash(block) {
+      return HashProvider.calculateBlockHash(block);
     }
 
     prepareCandidateBlock(minerAddress) {
@@ -130,9 +136,11 @@ class BurgerBlockchain {
         0,
         new Date().toISOString(),
         'coinbase tx',
-        "0000000000000000000000000000000000000000",
-        ["0000000000000000000000000000000000000000",
-        "0000000000000000000000000000000000000000"]
+        "00000000000000000000000000000000000000000000000000000000000000000",
+        [
+          "0000000000000000000000000000000000000000000000000000000000000000",
+          "0000000000000000000000000000000000000000000000000000000000000000"
+        ],
       )
       coinbaseTransaction.transferSuccessful=true;
       coinbaseTransaction.minedInBlockIndex=this.getLastBlock().index+1;

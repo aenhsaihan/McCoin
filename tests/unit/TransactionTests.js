@@ -6,6 +6,8 @@ const BurgerTransaction = require('../../burgerTransaction');
 const BurgerBlockchain = require('../../burgerBlockchain');
 const BurgerWallet = require('../../burgerWallet');
 
+const configurations = { selfUrl: 'test' };
+
 describe('BurgerNode', function () {
     const sender = new BurgerWallet('831da5badbeacc2311f0bc301b19dea1f29ff67556345bcfafee9651f835809c');
     let receiver;
@@ -17,7 +19,7 @@ describe('BurgerNode', function () {
         beforeEach(function () {
             receiver = new BurgerWallet();
             burgerBlockchain = new BurgerBlockchain();
-            burgerNode = new BurgerNode(burgerBlockchain);
+            burgerNode = new BurgerNode(burgerBlockchain, configurations);
         });
         it('Should fail due to mismatch in transaction data hash', function () {
             const transaction = new BurgerTransaction(
@@ -85,7 +87,7 @@ describe('BurgerNode', function () {
         beforeEach(function () {
             receiver = new BurgerWallet();
             burgerBlockchain = new BurgerBlockchain();
-            burgerNode = new BurgerNode(burgerBlockchain);
+            burgerNode = new BurgerNode(burgerBlockchain, configurations);
         });
         it('Should succeed due to correct inputs', function () {
             const transaction = new BurgerTransaction(
