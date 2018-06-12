@@ -165,9 +165,7 @@ var initConnection = (ws) => {
 var pullConfirmedTransactions = () => {
     const confirmedTransactions = [];
     burgerNode.chain.blocks.forEach(block => {
-        block.transactions.forEach(transaction =>{
-            confirmedTransactions.push(transaction);
-       })
+        confirmedTransactions.concat(block.transactions);
     });
 
     return confirmedTransactions;
