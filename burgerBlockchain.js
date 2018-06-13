@@ -15,6 +15,12 @@ class BurgerBlockchain {
         this.miningJobs = new Map();
     }
 
+    static createNewInstance(chainData) {
+      const burgerBlockchainInstance = new BurgerBlockchain(chainData);
+      Object.assign(burgerBlockchainInstance, chainData);
+      return burgerBlockchainInstance;
+    }
+
     createGenesisBlock() {
         const genesisBlockData = {
           "index": 0,

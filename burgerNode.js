@@ -1,6 +1,6 @@
 const BurgerBlock = require('./burgerBlock');
 const BurgerTransaction = require('./burgerTransaction');
-const BurgerMiner = require("./burgerMiner");
+const BurgerBlockchain = require('./burgerBlockchain');
 const BurgerWallet = require('./burgerWallet');
 
 class BurgerNode {
@@ -123,11 +123,13 @@ class BurgerNode {
 
     replaceChain(newChain) {
       const isChainValid = this.validateChain(newChain);
-      const hasMoreCumulativeDifficulty = newChain.calculateCumulativeDifficulty() > this.chain.calculateCumulativeDifficulty();
+      const newChainInstance = BurgerBlockchain.createNewInstance(newChain);
+
+      const hasMoreCumulativeDifficulty = newChainInstance.calculateCumulativeDifficulty() > this.chain.calculateCumulativeDifficulty();
 
       if (isChainValid && hasMoreCumulativeDifficulty) {
         // [Anar] TODO: clear mining jobs if cumulativeDifficulty is higher than current chain
-        this.chain = newChain;
+        this.chain = newChainInstance;
       } else {
         console.log('Received chain is not valid, rejecting...');
       }
