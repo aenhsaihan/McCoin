@@ -1,4 +1,4 @@
-const SHA256 = require('crypto-js/sha256');
+const HashProvider = require('./hashProvider');
 
 class BurgerBlock {
     constructor(index, transactions, difficulty, prevBlockHash, minedBy) {
@@ -7,6 +7,7 @@ class BurgerBlock {
         this.difficulty = difficulty;
         this.prevBlockhash = prevBlockHash;
         this.minedBy = minedBy;
+        this.prevBlockHash = prevBlockHash;
         this.blockDataHash = this.calculateBlockDataHash();
 
         this.nonce = 0;
@@ -25,12 +26,11 @@ class BurgerBlock {
             index: this.index,
             transactions: this.transactions,
             difficulty: this.difficulty,
-            prevBlockhash: this.prevBlockhash,
+            prevBlockHash: this.prevBlockHash,
             minedBy: this.minedBy
         };
-        const blockdatahash = SHA256(JSON.stringify(blockData));
 
-        return blockdatahash.toString();
+        return HashProvider.calculateBlockDataHash(blockData);
     }
 
     static validateBlock(block) {

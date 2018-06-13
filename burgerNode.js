@@ -2,11 +2,30 @@ const BurgerBlock = require('./burgerBlock');
 const BurgerTransaction = require('./burgerTransaction');
 const BurgerBlockchain = require('./burgerBlockchain');
 const BurgerWallet = require('./burgerWallet');
+const uuidv4 = require('uuid/v4');
 
 class BurgerNode {
-    constructor(burgerBlockchain) {
+    constructor(burgerBlockchain, configurations) {
         this.chain = burgerBlockchain;
         this.nodes = [];
+
+        this.nodeId = uuidv4();
+        this.nodeUrl = configurations.selfUrl;
+    }
+
+    get info() {
+        return {
+            "about": "McCoinChain/v0.1",
+            "nodeId": this.nodeId,
+            "chainId": this.chain.chainId,
+            "nodeUrl": this.nodeUrl,
+            "peers": this.nodes.length,
+            "currentDifficulty": this.chain.currentDifficulty,
+            "blocksCount": this.chain.blocks.length,
+            "cumulativeDifficulty": this.chain.cumulativeDifficulty,
+            "confirmedTransactions": this.pullConfirmedTransactions().length,
+            "pendingTransactions": this.chain.pendingTransactions.length
+        }
     }
 
     createNewBlock(proof, previousHash, confirmedTransactions = []) {
@@ -284,6 +303,18 @@ class BurgerNode {
         }
         return transactionData;
     }
+
+    pullConfirmedTransactions() {
+        let confirmedTransactions = [];
+        this.chain.blocks.forEach(block => {
+            console.log(block.transactions.length);
+            confirmedTransactions = confirmedTransactions.concat(block.transactions);
+        });
+        
+        return confirmedTransactions;
+    };
+
+
 }
 
 module.exports = BurgerNode;

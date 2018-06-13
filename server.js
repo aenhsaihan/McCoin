@@ -12,6 +12,7 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
+const hostName = process.env.HOST || 'localhost';
 var http_port = process.env.HTTP_PORT || 3001;
 var p2p_port = process.env.P2P_PORT || 6001;
 var initialPeers = process.env.PEERS ? process.env.PEERS.split(',') : [];
@@ -24,22 +25,25 @@ var MessageType = {
     RESPONSE_BLOCKCHAIN: 2
 };
 
-const burgerNode = new BurgerNode(new BurgerBlockchain())
-
 const config = {
-    host: "localhost",
+    host: hostName,
     port: http_port,
     websocketPort: p2p_port,
-    selfUrl: "http://localhost" + ":" + http_port,
-    webSocketUrl: "ws://localhost" + ":" + p2p_port,
-    todo: "IMPLEMENTATION PENDING"
-}
+    selfUrl: `http://${hostName}:${http_port}`,
+    webSocketUrl: `ws://${hostName}:${p2p_port}`
+};
+
+const burgerNode = new BurgerNode(new BurgerBlockchain(), config);
 
 const initializeServer = () => {
     app.listen(http_port, () => console.log('Listening http on port: ' + http_port))
 }
 
 app.use('/', express.static(path.resolve('public')));
+
+app.get('/info', (request, response) => {
+    response.json(burgerNode.info);
+});
 
 app.get('/blocks', (request, response) => {
     response.json(burgerNode.getBlocks())
@@ -62,7 +66,14 @@ app.get('/mining/get-mining-job/:address', (request, response) => {
     const information = burgerNode.chain.prepareCandidateBlock(minerAddress);
     response.json(information);
 })
+app.get('/transactions/confirmed',(req, res) => {
+    const confirmedTransactions =  burgerNode.pullConfirmedTransactions();
+    res.json(confirmedTransactions)
+})
+app.get('/transactions/pending',(req, res) => {
 
+    res.json(burgerNode.chain.pendingTransactions)
+})
 app.post('/transactions/send', (req, res) => {
     //take in transaction object
     //need to validate later <<<<---------------REMINDER!!!!!! --------------<<<<<<<<<---------
@@ -154,6 +165,8 @@ var initConnection = (ws) => {
     initErrorHandler(ws);
     write(ws, queryChainLengthMsg());
 };
+
+
 
 var initMessageHandler = (ws) => {
     ws.on('message', (data) => {

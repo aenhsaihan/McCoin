@@ -28,18 +28,25 @@ class BurgerFaucet {
     }
 
     /**
-     * Creates a faucet transaction with generous preset values.
+     * Creates a faucet transaction with preset values.
      */
     createFaucetTransaction() {
-        return new BurgerTransaction(
-            '0x000000000000000000000000000000000000000',
+        const faucetTransaction = new BurgerTransaction(
+            '0000000000000000000000000000000000000000',
             this.wallet.address,
-            100000000,
-            1,
+            1000000000000,
+            0,
             new Date(),
             'The first burgers',
-            '0x000000000000000000000000000000000000000'
+            '00000000000000000000000000000000000000000000000000000000000000000', 
+            [
+                "0000000000000000000000000000000000000000000000000000000000000000",
+                "0000000000000000000000000000000000000000000000000000000000000000"
+            ]
         );
+        faucetTransaction.minedInBlockIndex = 0;
+        faucetTransaction.transferSuccessful = true;
+        return faucetTransaction;
     }
 }
 
