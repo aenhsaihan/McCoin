@@ -15,6 +15,11 @@ class BurgerBlockchain {
         this.miningJobs = new Map();
     }
 
+    initialize(newChain) {
+      Object.assign(this, newChain);
+      this.miningJobs = new Map();
+    }
+
     createGenesisBlock() {
         const genesisBlock = new BurgerBlock(
             0,
@@ -28,6 +33,8 @@ class BurgerBlockchain {
     }
 
     addBlock(block) {
+        this.cumulativeDifficulty += block.difficulty; // temporary implementation while waiting for Issue #46
+
         this.flushPendingTransactions(block);
         this.blocks.push(block);
     }
@@ -74,6 +81,11 @@ class BurgerBlockchain {
     addMinedBlock(minedBlock) {
       let block = this.miningJobs.get(minedBlock.blockDataHash);
 
+      if (!block) {
+        console.log('REJECTED: Submitted block not found in jobs, possibly mined by someone else first.');
+        return false;
+      }
+
       const {
         nonce,
         dateCreated,
@@ -87,7 +99,6 @@ class BurgerBlockchain {
       if (this.canAddBlock(block)) {
         this.addBlock(block);
         this.miningJobs.delete(block.blockHash);
-        this.cumulativeDifficulty += block.difficulty;
         console.log('Submitted block has been added to chain');
       } else {
         console.log('Submitted block has failed to be added to chain');
