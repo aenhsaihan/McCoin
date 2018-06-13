@@ -145,6 +145,10 @@ class BurgerBlockchain {
     }
 
     canSenderTransferTransaction(transaction) {
+      if (transaction.from === '0000000000000000000000000000000000000000') {
+        return true;
+      }
+
       const senderBalance = this.getConfirmedBalanceOfAddress(transaction.from);
       const isBalanceEnough = (senderBalance - transaction.value - transaction.fee) >= 0;
       if (isBalanceEnough){
@@ -171,11 +175,11 @@ class BurgerBlockchain {
       return coinbaseTransaction;
     }
 
-    getConfirmedBalanceOfAddress(address) {
-      const {safeBalance, unsafeBalance} = this.getBalancesForAddress(address);
-      const confirmedBalance = safeBalance + unsafeBalance;
-      return confirmedBalance;
-    }
+    // getConfirmedBalanceOfAddress(address) {
+    //   const {safeBalance, unsafeBalance} = this.getBalancesForAddress(address);
+    //   const confirmedBalance = safeBalance + unsafeBalance;
+    //   return confirmedBalance;
+    // }
 
     getSafeBalanceOfAddress(address) {
       const safeBlockIndex = this.blocks.length - 6;

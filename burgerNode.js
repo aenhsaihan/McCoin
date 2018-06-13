@@ -212,7 +212,7 @@ class BurgerNode {
         const minimumFee = 10;
 
         const areKeysEqual = JSON.stringify(validKeys) === JSON.stringify(objectKeys);
-        const canPayFee = senderBalance > transaction.fee;
+        let canPayFee = senderBalance > transaction.fee;
         const willNotOverflow = (receiverBalance + transaction.value) >= receiverBalance;
         const isValueGreaterThanOrEqualToZero = transaction.value >= 0;
         const isSenderCorrect = this.validateAddress(transaction.from);
@@ -231,6 +231,11 @@ class BurgerNode {
         if (block) {
           // replay transactionSuccessful here using logic from the burgerChain prepare candidate block
           transactionSuccessfulShouldNotBeTrue = true;
+        }
+
+        if (transaction.from === '0000000000000000000000000000000000000000') {
+            canPayFee = true;
+            isSignatureValid = true;
         }
 
         return areKeysEqual
