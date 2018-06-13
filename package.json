@@ -25,6 +25,7 @@
         "faker": "^4.1.0",
         "mocha": "^5.2.0",
         "path": "^0.12.7",
+        "promise": "^8.0.1",
         "readline-sync": "^1.4.9",
         "request": "^2.86.0",
         "request-promise": "^4.2.2",

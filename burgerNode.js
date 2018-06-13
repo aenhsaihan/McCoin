@@ -3,11 +3,11 @@ const BurgerTransaction = require('./burgerTransaction');
 const BurgerBlockchain = require('./burgerBlockchain');
 const BurgerWallet = require('./burgerWallet');
 const uuidv4 = require('uuid/v4');
-
+ 
 class BurgerNode {
     constructor(burgerBlockchain, configurations) {
         this.chain = burgerBlockchain;
-        this.nodes = [];
+        this.nodes = {};
 
         this.nodeId = uuidv4();
         this.nodeUrl = configurations.selfUrl;
@@ -19,7 +19,7 @@ class BurgerNode {
             "nodeId": this.nodeId,
             "chainId": this.chain.chainId,
             "nodeUrl": this.nodeUrl,
-            "peers": this.nodes.length,
+            "peers": Object.keys(this.nodes).length,
             "currentDifficulty": this.chain.currentDifficulty,
             "blocksCount": this.chain.blocks.length,
             "cumulativeDifficulty": this.chain.cumulativeDifficulty,
@@ -307,7 +307,6 @@ class BurgerNode {
     pullConfirmedTransactions() {
         let confirmedTransactions = [];
         this.chain.blocks.forEach(block => {
-            console.log(block.transactions.length);
             confirmedTransactions = confirmedTransactions.concat(block.transactions);
         });
         

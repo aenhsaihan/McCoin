@@ -1,0 +1,252 @@
+const WebSocket = require("ws");
+const requester = require('request-promise');
+
+class BurgerSync {
+    constructor(port, burgerNode) {
+        this.burgerNode = burgerNode;
+
+        this.peers = {};
+        this.MESSAGE_TYPE = {
+            INITIAL_HANDSHAKE_QUERY: 0,
+            INITIAL_HANDSHAKE_RESPONSE: 1,
+            REQUEST_SYNC_CHAIN: 2,
+            RESPONSE_SYNC_CHAIN: 3,
+            BROADCAST_NEW_BLOCK: 4,
+            BROADCAST_NEW_TRANSACTION: 5,
+            INVALID_REQUEST: 6
+        }
+
+        this.webSocket = new WebSocket.Server({ port });
+        this.webSocket.on('connection', this.initializeConnection.bind(this));
+        this._printMessage('P2P IS LISTENING ON PORT ' + port);
+    }
+
+    /**
+     * Connects and gets the information of a peer
+     * via the /info REST endpoint.
+     * 
+     * Will not connect if the node is currently
+     * connected to the intended peer.
+     * 
+     * @param {url} newPeer - the (http) URL of the peer
+     */
+    async connect(newPeer) {
+        const options = {
+            uri: newPeer + '/info',
+            json: true
+        };
+
+        const info = await requester(options);
+
+        if (Object.keys(this.peers).includes(info.nodeId)) {
+            throw new Error('Error: Already connected to peer!');
+        }
+        
+        const newPeerWebSocket = new WebSocket('ws://' + info.nodeUrl);
+        newPeerWebSocket.on('open', () => {
+            this.addPeer(info.nodeId, newPeerWebSocket);
+            this.initializeConnection(newPeerWebSocket);
+        });
+    }
+
+    /**
+     * Adds the peer to the (nodeId => websocket) map.
+     * 
+     * @param {string} nodeId - the NodeID of the peer
+     * @param {websocket} peer - the socket connection object to the peer
+     */
+    addPeer(nodeId, peer) {
+        this._printMessage('Peer added to list...')
+        this.peers[nodeId] = peer;
+        this.burgerNode.nodes[nodeId] = this._getInternalQualifiedName(peer);
+    }
+
+    /**
+     * The node initializes the websocket connection to 
+     * the peer and gets itself ready via the following steps:
+     * 
+     * 1 - Send a handshake to the peer announcing that it wants
+     *      to check /info and possibly sync if the peer's chain
+     *      is better.
+     * 2 - Initializes the close, error, and message event handlers.
+     * 
+     * @param {websocket} peer - the socket connection object to the peer
+     */
+    initializeConnection(peer) {
+        this._printMessage('Peer Connected: ' + this._getInternalQualifiedName(peer));
+        this._write(peer, this.MESSAGE_TYPE.INITIAL_HANDSHAKE_QUERY, 'Hello!');
+        peer.on('close', () => {
+            this.initializeErrorHandler(peer);
+        });
+        peer.on('error', () => {
+            this.initializeErrorHandler(peer);
+        });
+        peer.on('message', (message) => {
+            this.initializeMessageHandler(peer, message);
+        });
+    }
+
+    /**
+     * Handles the messages received from the websockets.
+     * For the uniformity of the messages, this schema
+     * is followed:
+     * 
+     * schema = {
+     *      type: this.MESSAGE_TYPE[the-message-type],
+     *      message: the message object
+     * }
+     * 
+     * Usage of burgerSync._write() method is recommended
+     * to send message.
+     * 
+     * @param {websocket} peer - the socket connection object to the peer
+     * @param {object} rawMessage - the message received on the socket
+     */
+    initializeMessageHandler(peer, rawMessage) {
+        let transmission = JSON.parse(rawMessage);
+        let message = transmission.message;
+
+        switch(transmission.type) {
+            case this.MESSAGE_TYPE.INITIAL_HANDSHAKE_QUERY: 
+                this._printMessage('Initial handshake Sent!')
+                this._write(peer, this.MESSAGE_TYPE.INITIAL_HANDSHAKE_RESPONSE, this.burgerNode.info);
+                break; 
+            case this.MESSAGE_TYPE.INITIAL_HANDSHAKE_RESPONSE: 
+                this._printMessage('Initial handshake received!');
+                if (message.cumulativeDifficulty > this.burgerNode.info.cumulativeDifficulty) {
+                    this._printMessage('Peer chain is better, requesting sync...');
+                    this._write(peer, this.MESSAGE_TYPE.REQUEST_SYNC_CHAIN, 'Let us sync!');
+                }
+                break;
+            case this.MESSAGE_TYPE.REQUEST_SYNC_CHAIN:
+                this._printMessage('Sync request received! Sending chain...')
+                this._write(peer, this.MESSAGE_TYPE.RESPONSE_SYNC_CHAIN, this.burgerNode.chain);
+                break;
+            case this.MESSAGE_TYPE.RESPONSE_SYNC_CHAIN:
+                /**
+                 * When chain is synced, all pending transactions are lost.
+                 * Wait for Issue #41 and adjust needed logic to concat
+                 * pending transactions instead of replacing.
+                 */
+                this._printMessage('Chain received! Syncing...')
+                this.burgerNode.replaceChain(message);
+                this._printMessage('    Synced!');
+                break;
+            case this.MESSAGE_TYPE.BROADCAST_NEW_BLOCK:
+                this._printMessage('A new block has been mined!');
+                if (message.cumulativeDifficulty > this.burgerNode.info.cumulativeDifficulty) {
+                    this.burgerNode.replaceChain(message);
+                    this.broadcastNewBlock(message);
+                }
+                break;
+            case this.MESSAGE_TYPE.BROADCAST_NEW_TRANSACTION:
+                this._printMessage('Processing new broadcasted transaction...');
+                const isValid = this.burgerNode.addPendingTransaction(message);
+                if (isValid) {
+                    this.burgerNode.addPendingTransaction(message);
+                    this._broadcast(this.MESSAGE_TYPE.BROADCAST_NEW_TRANSACTION, message);
+                    this._printMessage('    Added to pending transactions!');
+                } else {
+                    this._printMessage('    Not added to chain!')
+                }
+                break;
+            default:
+                this._write(peer, this.MESSAGE_TYPE.INVALID_REQUEST, 'REJECTED: Got invalid request!')
+        }
+    }
+
+    /**
+     * Broadcasts a new transaction to all connected peers.
+     * 
+     * @param {burgerTransaction} transaction 
+     */
+    broadcastNewTransaction(transaction) {
+        this._broadcast(this.MESSAGE_TYPE.BROADCAST_NEW_TRANSACTION, transaction);
+    }
+
+    /**
+     * Broadcasts a new block to all connected peers.
+     * This event happens when a new block is mined.
+     * 
+     * @param {burgerBlockchain} chain 
+     */
+    broadcastNewBlock(chain) {
+        this._broadcast(this.MESSAGE_TYPE.BROADCAST_NEW_BLOCK, chain);
+    }
+
+    /**
+     * Removes the peer from the (nodeId => websocket) map.
+     * 
+     * @param {websocket} peer - the socket connection object to the peer
+     */
+    initializeErrorHandler(peer) {
+        this._printMessage('Connection Failed to ' + this._getInternalQualifiedName(peer));
+        this._removePeer(peer);
+    }
+
+    // Private methods ================
+
+    /**
+     * Sends a message to a single peer.
+     * 
+     * @param {websocket} peer - the socket connection object to the peer.
+     * @param {burgerSync.MESSAGE_TYPE} type - the message type (from burgerSync.MESSAGE_TYPE).
+     * @param {object} message - the message to be sent
+     */
+    _write(peer, type, message) {
+        const transmission = { type, message };
+        peer.send(JSON.stringify(transmission));
+    }
+
+    /**
+     * Broadcasts a message to all connected peers.
+     * 
+     * @param {burgerSync.MESSAGE_TYPE} type - the message type (from burgerSync.MESSAGE_TYPE).
+     * @param {object} message - the message to be sent
+     */
+    _broadcast(type, message) {
+        this._getPeers().forEach(function(peer) {
+            this._write(peer, type, message);
+        }.bind(this));
+    }
+
+    /**
+     * Prints a log on the console.
+     * 
+     * @param {string} message 
+     */
+    _printMessage(message) {
+        console.log(`[${new Date().toISOString()}] ${message}`);
+    }
+
+    /**
+     * Gets the [remoteAddress:port] string of a websocket connection
+     * object for whatever purpose it may serve us best. :D
+     * 
+     * @param {*} peer 
+     */
+    _getInternalQualifiedName(peer) {
+        return peer._socket.remoteAddress + ":" + peer._socket.remotePort;
+    }
+
+    /**
+     * Removes a peer from the (nodeId => websocket) map.
+     * 
+     * @param {url} peerUrl - the peer URL (a string, not the websocket instance)
+     */
+    _removePeer(peerUrl) {
+        const peerIndex = Object.values(this.peers).indexOf(peerUrl);
+        const peer = Object.keys(this.peers)[peerIndex];
+        delete this.peers[peer];
+        delete this.burgerNode.nodes[peer];       
+    }
+
+    /**
+     * Retrieves all websocket instances from the (nodeId => websocket) map.
+     */
+    _getPeers() {
+        return Object.values(this.peers);
+    }
+}
+
+module.exports = BurgerSync;
