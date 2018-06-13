@@ -12,12 +12,12 @@ var cors = require('cors');
 
 const app = express();
 const server = http.createServer(app);
+
 app.use(cors());
 app.use(bodyParser.json());
 
 const hostName = process.env.HOST || 'localhost';
 var http_port = process.env.HTTP_PORT || 3001;
-var p2p_port = process.env.P2P_PORT || 6001;
 var initialPeers = process.env.PEERS ? process.env.PEERS.split(',') : [];
 
 let burgerSync;
@@ -25,7 +25,6 @@ let burgerSync;
 const config = {
     host: hostName,
     port: http_port,
-    websocketPort: p2p_port,
     selfUrl: `${hostName}:${http_port}`,
 };
 
@@ -125,7 +124,6 @@ app.get('/debug', (req, res) => {
     res.json({
         "node": burgerNode,
         "config": config,
-        "candidateBlock": burgerNode.chain.prepareCandidateBlock('0000000000000000000001')
     });
 })
 
@@ -137,9 +135,8 @@ app.get('/debug/reset-chain', (req, res) => {
 })
 
 const initializeServer = () => {
-    burgerSync = new BurgerSync(server, p2p_port, burgerNode);
-    server.listen(http_port, () => console.log('Listening http on port: ' + http_port))
+    burgerSync = new BurgerSync(server, burgerNode);
+    server.listen(http_port, () => console.log('HTTP and P2P is listening on port: ' + http_port));
 }
 
 initializeServer();
-// initP2PServer();

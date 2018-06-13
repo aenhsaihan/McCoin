@@ -2,7 +2,7 @@ const WebSocket = require("ws");
 const requester = require('request-promise');
 
 class BurgerSync {
-    constructor(server, port, burgerNode) {
+    constructor(server, burgerNode) {
         this.burgerNode = burgerNode;
 
         this.peers = {};
@@ -20,7 +20,6 @@ class BurgerSync {
 
         this.webSocket = new WebSocket.Server({ server });
         this.webSocket.on('connection', this.initializeConnection.bind(this)); 
-        // this._printMessage('P2P IS LISTENING ON PORT ' + port);
     }
 
     /**
@@ -241,6 +240,14 @@ class BurgerSync {
         }.bind(this));
     }
 
+    /**
+     * Rebroadcasts the message to all connected peers EXCEPT
+     * the source peer to prevent a notification loop from happening
+     * 
+     * @param {*} sourcePeer - the peer to exclude from the broadcast
+     * @param {burgerSync.MESSAGE_TYPE} type - the message type (from burgerSync.MESSAGE_TYPE).
+     * @param {object} message - the message to be sent
+     */
     _reBroadcast(sourcePeer, type, message) {
         this._getPeers().forEach(function(peer) {
             if (this._getInternalQualifiedName(peer) !== this._getInternalQualifiedName(sourcePeer)) {
