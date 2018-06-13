@@ -16,13 +16,35 @@ class BurgerBlockchain {
     }
 
     createGenesisBlock() {
-        const genesisBlock = new BurgerBlock(
-            0,
-            [BurgerFaucet.createFaucetTransaction()],
-            0,
-            '816534932c2b7154836da6afc367695e6337db8a921823784c14378abed4f7d7',
-            0
-        );
+        const genesisBlockData = {
+          "index": 0,
+          "transactions": [{
+            "from": "0000000000000000000000000000000000000000",
+            "to": "e9e12fe5c7d3330f83d7a374ca1bacc0cc730196",
+            "value": 1000000000000,
+            "fee": 0,
+            "dateCreated": "2018-06-13T10:01:48.471Z",
+            "data": "The first burgers",
+            "senderPubKey": "00000000000000000000000000000000000000000000000000000000000000000",
+            "senderSignature": [
+              "0000000000000000000000000000000000000000000000000000000000000000",
+              "0000000000000000000000000000000000000000000000000000000000000000"
+            ],
+            "minedInBlockIndex": 0,
+            "transferSuccessful": true,
+            "transactionDataHash": "175f5ee0cd0e93b572729b09853f2cde411a9976abe39236dfbb9c8c7f319d4c"
+          }],
+          "difficulty": 0,
+          "prevBlockhash": "0000000000000000000000000000000000000000000000000000000000000000",
+          "minedBy": "0000000000000000000000000000000000000000",
+          "prevBlockHash": "0000000000000000000000000000000000000000000000000000000000000000",
+          "blockDataHash": "e6c4e5e5a6f880028bddfc0e279c350ffdbd18dff8be2f2bb61cb6e99294a01b",
+          "nonce": 0,
+          "dateCreated": "2018-06-13T10:01:48.474Z",
+          "blockHash": "232e447f6a0a065112b396aaa49cc52b0ff76c37cbd9169635992c207b8f10df"
+        }
+        
+        const genesisBlock = BurgerBlock.createNewInstance(genesisBlockData);
         return genesisBlock;
     }
 

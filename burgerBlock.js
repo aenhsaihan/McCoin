@@ -14,6 +14,12 @@ class BurgerBlock {
         this.blockHash = null;
     }
 
+    static createNewInstance(blockData) {
+        const burgerBlockInstance = new BurgerBlock(blockData);
+        Object.assign(burgerBlockInstance, blockData);
+        return burgerBlockInstance;
+    }
+
     calculateBlockDataHash() {
         const blockData = {
             index: this.index,
