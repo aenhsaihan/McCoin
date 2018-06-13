@@ -121,7 +121,7 @@ app.post('/peers/connect', (req, res) => {
         burgerSync.connect(req.body.peer);
         res.status(200).send('Success!');
     } catch(e) {
-        res.status(400).send("FAILED: Peer already exists on the node!");
+        res.status(400).send(e.message);
     }
 })
 
