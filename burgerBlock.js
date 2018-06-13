@@ -16,7 +16,7 @@ class BurgerBlock {
     }
 
     static createNewInstance(blockData) {
-        const burgerBlockInstance = new BurgerBlock(blockData);
+        const burgerBlockInstance = new BurgerBlock();
         Object.assign(burgerBlockInstance, blockData);
         return burgerBlockInstance;
     }

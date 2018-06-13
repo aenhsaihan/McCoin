@@ -1,16 +1,17 @@
 const express = require('express')
 const path = require('path');
+const http = require('http');
+
 const BurgerBlockchain = require('./burgerBlockchain')
 const BurgerNode = require('./burgerNode')
-const BurgerMiner = require('./burgerMiner')
 const BurgerFaucet = require('./burgerFaucet');
 const BurgerSync = require('./burgerSync');
 
 var bodyParser = require('body-parser');
-var WebSocket = require("ws");
 var cors = require('cors');
 
 const app = express();
+const server = http.createServer(app);
 app.use(cors());
 app.use(bodyParser.json());
 
@@ -21,26 +22,14 @@ var initialPeers = process.env.PEERS ? process.env.PEERS.split(',') : [];
 
 let burgerSync;
 
-var sockets = [];
-
-var MessageType = {
-    QUERY_LATEST: 0,
-    QUERY_ALL: 1,
-    RESPONSE_BLOCKCHAIN: 2
-};
-
 const config = {
     host: hostName,
     port: http_port,
     websocketPort: p2p_port,
-    selfUrl: `${hostName}:${p2p_port}`,
+    selfUrl: `${hostName}:${http_port}`,
 };
 
 const burgerNode = new BurgerNode(new BurgerBlockchain(), config);
-
-const initializeServer = () => {
-    app.listen(http_port, () => console.log('Listening http on port: ' + http_port))
-}
 
 app.use('/', express.static(path.resolve('public')));
 
@@ -55,7 +44,7 @@ app.get('/blocks', (request, response) => {
 app.get('/blocks/:index', (request, response) => {
     const index = request.params.index
     const block = burgerNode.findBlockByIndex(index)
-    response.json(block)
+    response.json(block) 
 })
 
 app.post('/mining/submit-mined-block', (request, response) => {
@@ -116,9 +105,9 @@ app.get('/peers', (req, res) => {
     res.send(burgerNode.nodes);
 })
 
-app.post('/peers/connect', (req, res) => {
+app.post('/peers/connect', async (req, res) => {
     try {
-        burgerSync.connect(req.body.peer);
+        await burgerSync.connect(req.body.peer);
         res.status(200).send('Success!');
     } catch(e) {
         res.status(400).send(e.message);
@@ -147,9 +136,10 @@ app.get('/debug/reset-chain', (req, res) => {
     });
 })
 
-var initP2PServer = () => {
-    burgerSync = new BurgerSync(p2p_port, burgerNode);
-};
+const initializeServer = () => {
+    burgerSync = new BurgerSync(server, p2p_port, burgerNode);
+    server.listen(http_port, () => console.log('Listening http on port: ' + http_port))
+}
 
-initializeServer()
-initP2PServer();
+initializeServer();
+// initP2PServer();
