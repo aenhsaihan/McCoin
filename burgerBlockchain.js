@@ -180,7 +180,9 @@ class BurgerBlockchain {
 
       transactions.forEach((transaction) => {
         if (transaction.from === address) {
+          balance -= transaction.fee;
           balance -= transaction.value;
+          
         } else if (transaction.to === address) {
           balance += transaction.value;
         }
