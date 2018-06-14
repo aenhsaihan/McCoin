@@ -48,6 +48,12 @@ class BurgerNode {
         this.chain.resetChain();
     }
 
+    appendPendingTransactions(pendingTransactions) {
+        pendingTransactions.forEach((transaction) => {
+            this.addPendingTransaction(transaction);
+        })
+    }
+
     validateTransactionsOfBlock(block) {
       let areTransactionsValid = true;
       for (let i = 1; i < block.transactions.length; i++) {
@@ -143,12 +149,14 @@ class BurgerNode {
     replaceChain(newChain) {
       const isChainValid = this.validateChain(newChain);
       const newChainInstance = BurgerBlockchain.createNewInstance(newChain);
+      const pendingTransactions = this.chain.pendingTransactions;
 
       const hasMoreCumulativeDifficulty = newChainInstance.calculateCumulativeDifficulty() > this.chain.calculateCumulativeDifficulty();
 
       if (isChainValid && hasMoreCumulativeDifficulty) {
         // [Anar] TODO: clear mining jobs if cumulativeDifficulty is higher than current chain
         this.chain = newChainInstance;
+        this.appendPendingTransactions(pendingTransactions);
       } else {
         console.log('Received chain is not valid, rejecting...');
       }
@@ -289,7 +297,18 @@ class BurgerNode {
             }
         }
 
-        return transactions;
+        const pendingTransactions = this.chain.pendingTransactions.filter((transaction) => {
+            return transaction.to === address || transaction.from === address;
+        });
+        if (pendingTransactions.length > 0) {
+            transactions = transactions.concat(transactions, pendingTransactions);
+        }
+
+        transactions.sort((tx1, tx2) => {
+            return new Date(tx1.dateCreated) < new Date(tx2.dateCreated);
+        });
+
+        return {address, transactions};
     }
 
     getTransaction(transactionDataHash) {

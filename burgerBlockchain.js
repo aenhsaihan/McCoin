@@ -16,8 +16,9 @@ class BurgerBlockchain {
     }
 
     static createNewInstance(chainData) {
-      const burgerBlockchainInstance = new BurgerBlockchain(chainData);
+      const burgerBlockchainInstance = new BurgerBlockchain();
       Object.assign(burgerBlockchainInstance, chainData);
+      burgerBlockchainInstance.miningJobs = new Map();
       return burgerBlockchainInstance;
     }
 
