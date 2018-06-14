@@ -177,6 +177,43 @@ describe('BurgerBlockchain', function () {
             assert.equal(candidateBlock.transactions[1].transferSuccessful, true);
             assert.equal(candidateBlock.transactions[2].transferSuccessful, false);
         });
+        it('Should add the fees to the coinbase transaction', function() {
+            burgerBlockchain.pendingTransactions.push({
+                "from": "e9e12fe5c7d3330f83d7a374ca1bacc0cc730196",
+                "to": "a33d1cb7d8925f05c2036fbe58660f2a70acc10f",
+                "value": 100,
+                "fee": 10,
+                "dateCreated": "2018-06-13T20:34:56.821Z",
+                "data": "",
+                "senderPubKey": "7135be26422c9edf15ebb3076694f9acb5f6d37460b8352225863a32247b04fd1",
+                "senderSignature": [
+                    "8938d95ebffc5dd217cfcc112debf68478710e4efdb10ae6166a9c359413c449",
+                    "b37c4c8a12e57caa021781a3706d7c847f91b511d10c32271c1b8e472fb7c106"
+                ],
+                "minedInBlockIndex": null,
+                "transferSuccessful": null,
+                "transactionDataHash": "7fea0e049b8e902fc86d2c1b97d36117a9fb8709e9d8f8993f2697391025b590"
+            });
+            burgerBlockchain.pendingTransactions.push({
+                "from": "e9e12fe5c7d3330f83d7a374ca1bacc0cc730196",
+                "to": "a33d1cb7d8925f05c2036fbe58660f2a70acc10f",
+                "value": 100,
+                "fee": 20,
+                "dateCreated": "2018-06-13T20:34:56.821Z",
+                "data": "",
+                "senderPubKey": "7135be26422c9edf15ebb3076694f9acb5f6d37460b8352225863a32247b04fd1",
+                "senderSignature": [
+                    "8938d95ebffc5dd217cfcc112debf68478710e4efdb10ae6166a9c359413c449",
+                    "b37c4c8a12e57caa021781a3706d7c847f91b511d10c32271c1b8e472fb7c106"
+                ],
+                "minedInBlockIndex": null,
+                "transferSuccessful": null,
+                "transactionDataHash": "7fea0e049b8e902fc86d2c1b97d36117a9fb8709e9d8f8993f2697391025b590"
+            });
+            const candidateBlock = burgerBlockchain.prepareCandidateBlock('John Doe');
+            assert.equal(candidateBlock.transactions.length, 3);
+            assert.equal(candidateBlock.transactions[0].value, 500030);
+        });
     });
     describe('#createCoinbaseTransaction()', function () {
         const now = new Date('2018-06-13T20:14:49.334Z');
