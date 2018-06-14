@@ -16,16 +16,17 @@ const server = http.createServer(app);
 app.use(cors());
 app.use(bodyParser.json());
 
-const hostName = process.env.HOST || 'localhost';
-var http_port = process.env.HTTP_PORT || 3001;
+const REMOTE_HOST = process.env.REMOTE_HOST;
+const HOST_NAME = process.env.HOST || 'localhost';
+const PORT = process.env.PORT || 3001;
 var initialPeers = process.env.PEERS ? process.env.PEERS.split(',') : [];
 
 let burgerSync;
 
 const config = {
-    host: hostName,
-    port: http_port,
-    selfUrl: `${hostName}:${http_port}`,
+    host: HOST_NAME,
+    port: PORT,
+    selfUrl: REMOTE_HOST || `${HOST_NAME}:${PORT}`,
 };
 
 const burgerNode = new BurgerNode(new BurgerBlockchain(), config);
@@ -136,7 +137,7 @@ app.get('/debug/reset-chain', (req, res) => {
 
 const initializeServer = () => {
     burgerSync = new BurgerSync(server, burgerNode);
-    server.listen(http_port, () => console.log('HTTP and P2P is listening on port: ' + http_port));
+    server.listen(PORT, () => console.log('HTTP and P2P is listening on port: ' + PORT));
 }
 
 initializeServer();
