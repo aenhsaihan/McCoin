@@ -297,7 +297,18 @@ class BurgerNode {
             }
         }
 
-        return transactions;
+        const pendingTransactions = this.chain.pendingTransactions.filter((transaction) => {
+            return transaction.to === address || transaction.from === address;
+        });
+        if (pendingTransactions.length > 0) {
+            transactions = transactions.concat(transactions, pendingTransactions);
+        }
+
+        transactions.sort((tx1, tx2) => {
+            return new Date(tx1.dateCreated) < new Date(tx2.dateCreated);
+        });
+
+        return {address, transactions};
     }
 
     getTransaction(transactionDataHash) {
