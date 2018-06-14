@@ -118,6 +118,7 @@ class BurgerBlockchain {
         } else {
           transaction.transferSuccessful=false;
         }
+        transactions[0].value += transaction.fee;
         transactions.push(transaction); 
       }
 
