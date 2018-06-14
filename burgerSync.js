@@ -15,7 +15,9 @@ class BurgerSync {
             BROADCAST_NEW_TRANSACTION: 5,
             REQUEST_SYNC_PENDING_TRANSACTIONS: 6,
             RESPONSE_SYNC_PENDING_TRANSACTIONS: 7,
-            INVALID_REQUEST: 8
+            INVALID_REQUEST: 8,
+            CLIENT_HANDSHAKE_REQUEST: 9,
+            CLIENT_HANDSHAKE_RESPONSE: 10
         }
 
         this.webSocket = new WebSocket.Server({ server });
@@ -179,6 +181,11 @@ class BurgerSync {
                 } else {
                     this._printMessage('    Not added to chain!')
                 }
+                break;
+            case this.MESSAGE_TYPE.CLIENT_HANDSHAKE_REQUEST:
+                this.peers['explorer-' + new Date().toISOString] = peer;
+                this._write(peer, this.MESSAGE_TYPE.CLIENT_HANDSHAKE_RESPONSE, 'Registered!');
+                this._printMessage(this._getInternalQualifiedName(peer) + ' identified itself as a block explorer, added!');
                 break;
             default:
                 this._write(peer, this.MESSAGE_TYPE.INVALID_REQUEST, 'REJECTED: Got invalid request!')
