@@ -1,13 +1,13 @@
 const BurgerBlock = require('./burgerBlock');
 const BurgerTransaction = require('./burgerTransaction');
-const BurgerMiner = require("./burgerMiner");
+const BurgerBlockchain = require('./burgerBlockchain');
 const BurgerWallet = require('./burgerWallet');
 const uuidv4 = require('uuid/v4');
-
+ 
 class BurgerNode {
     constructor(burgerBlockchain, configurations) {
         this.chain = burgerBlockchain;
-        this.nodes = [];
+        this.nodes = {};
 
         this.nodeId = uuidv4();
         this.nodeUrl = configurations.selfUrl;
@@ -19,7 +19,7 @@ class BurgerNode {
             "nodeId": this.nodeId,
             "chainId": this.chain.chainId,
             "nodeUrl": this.nodeUrl,
-            "peers": this.nodes.length,
+            "peers": Object.keys(this.nodes).length,
             "currentDifficulty": this.chain.currentDifficulty,
             "blocksCount": this.chain.blocks.length,
             "cumulativeDifficulty": this.chain.cumulativeDifficulty,
@@ -48,8 +48,110 @@ class BurgerNode {
         this.chain.resetChain();
     }
 
+    validateTransactionsOfBlock(block) {
+      let areTransactionsValid = true;
+      for (let i = 1; i < block.transactions.length; i++) {
+        const newTransaction = block.transactions[i];
+        const isTransactionValid = this.validateTransaction(newTransaction, block);
+        const isMinedInCorrectBlockIndex = newTransaction.minedInBlockIndex === block.index;
+        const isTransferSuccessful = newTransaction.transferSuccessful === this.chain.canSenderTransferTransaction(newTransaction);
+
+        if (!isTransactionValid && !isMinedInCorrectBlockIndex && !isTransferSuccessful) {
+          areTransactionsValid = false;
+          break;
+        }
+      }
+
+      return areTransactionsValid;
+    }
+
+    validateBlocks(newChain) {
+      // [Anar] maybe this logic should go in the chain?
+      let areBlocksValid = true;
+
+      for (var i = 1; i < newChain.blocks.length; i++) {
+        const newBlock = newChain.blocks[i]
+        // newBlock.prevBlockhash = "somestring"; // just for testing purposes!!!
+        const areBlockKeysAndValuesValid = BurgerBlock.validateBlock(newBlock); // just validating keys/values
+
+        // re-calculate block data hash
+        const compareBlock = new BurgerBlock(
+          newBlock.index,
+          newBlock.transactions,
+          newBlock.difficulty,
+          newBlock.prevBlockhash,
+          newBlock.minedBy
+        );
+        const doBlockDataHashesMatch = newBlock.blockDataHash === compareBlock.blockDataHash;
+
+        // re-calculate block hash
+        const doBlockHashesMatch = this.chain.isBlockValid(newBlock);
+
+        // corroborate hash's difficulty
+        const currentDifficulty = newBlock.difficulty;
+        const isDifficultyValid = newBlock.blockHash.substring(0, currentDifficulty) === Array(currentDifficulty + 1).join('0');
+
+        // corroborate the previousHash value of the previous block
+        const previousBlock = newChain.blocks[i - 1];
+        const isPrevBlockHashValid = newBlock.prevBlockhash === previousBlock.blockHash;
+
+        if (!areBlockKeysAndValuesValid
+          || !doBlockDataHashesMatch
+          || !doBlockHashesMatch
+          || !isDifficultyValid
+          || !isPrevBlockHashValid
+        ) {
+          areBlocksValid = false;
+          break;
+        }
+
+        let areTransactionsValid = this.validateTransactionsOfBlock(newBlock);
+
+        if (!areTransactionsValid) {
+          areBlocksValid = false;
+          break;
+        }
+      }
+
+      return areBlocksValid;
+    }
+
+    validateGenesisBlock(newChain) {
+      // [Anar] maybe this logic should go in the chain?
+      const genesisBlockHeld = this.chain.blocks[0].transactions[0];
+      const genesisBlockHeldKeys = Object.keys(genesisBlockHeld);
+      const genesisBlockHeldValues = Object.values(genesisBlockHeld);
+
+      const receivedGenesisBlock = newChain.blocks[0].transactions[0];
+      const receivedGenesisBlockKeys = Object.keys(receivedGenesisBlock);
+      const receivedGenesisBlockValues = Object.values(receivedGenesisBlock);
+
+      const areKeysEqual = JSON.stringify(genesisBlockHeldKeys) === JSON.stringify(receivedGenesisBlockKeys);
+      const areValuesEqual = JSON.stringify(genesisBlockHeldValues) === JSON.stringify(receivedGenesisBlockValues);
+
+      return areKeysEqual && areValuesEqual;
+    }
+
+    validateChain(newChain) {
+      const isGenesisBlockValid = this.validateGenesisBlock(newChain);
+      const areBlocksValid = this.validateBlocks(newChain);
+
+      return isGenesisBlockValid
+          && areBlocksValid;
+    }
+
     replaceChain(newChain) {
-        this.chain = newChain;
+      const isChainValid = this.validateChain(newChain);
+      const newChainInstance = BurgerBlockchain.createNewInstance(newChain);
+
+      const hasMoreCumulativeDifficulty = newChainInstance.calculateCumulativeDifficulty() > this.chain.calculateCumulativeDifficulty();
+
+      if (isChainValid && hasMoreCumulativeDifficulty) {
+        // [Anar] TODO: clear mining jobs if cumulativeDifficulty is higher than current chain
+        this.chain = newChainInstance;
+      } else {
+        console.log('Received chain is not valid, rejecting...');
+      }
     }
 
     getBlocks() {
@@ -109,11 +211,7 @@ class BurgerNode {
       return this.chain.getSafeBalanceOfAddress(address);
     }
 
-    validateChain() {
-
-    }
-
-    validateTransaction(transaction) {
+    validateTransaction(transaction, block) {
         const validKeys = [
             'from',
             'to',
@@ -133,22 +231,32 @@ class BurgerNode {
         const minimumFee = 10;
 
         const areKeysEqual = JSON.stringify(validKeys) === JSON.stringify(objectKeys);
-        const canPayFee = senderBalance > transaction.fee;
+        let canPayFee = senderBalance > transaction.fee;
         const willNotOverflow = (receiverBalance + transaction.value) >= receiverBalance;
         const isValueGreaterThanOrEqualToZero = transaction.value >= 0;
         const isSenderCorrect = this.validateAddress(transaction.from);
         const isReceiverCorrect = this.validateAddress(transaction.to);
         const isSignatureValid = BurgerWallet.verify(transaction);
         const isFeeGreaterThanEqualToMinimum = transaction.fee >= minimumFee;
-        
+
         const expectedTransactionDataHash = BurgerTransaction.computetransactionDataHash(transaction);
         const isTransactionDataHashValid = expectedTransactionDataHash === transaction.transactionDataHash;
-        
+
         const transactionDataHashMustBeUnique = this.chain.pendingTransactions.filter(tx => tx.transactionDataHash === transaction.transactionDataHash).length === 0;
         const isValidTransactionDataHash = transaction.transactionDataHash === BurgerTransaction.computetransactionDataHash(transaction);
         const areNumbersOfCorrectType = typeof transaction.fee === 'number' && typeof transaction.value === 'number';
-        const transactionSuccessfulShouldNotBeTrue = !transaction.transferSuccessful;
-        
+        let transactionSuccessfulShouldNotBeTrue = !transaction.transferSuccessful; // make it let for now
+
+        if (block) {
+          // replay transactionSuccessful here using logic from the burgerChain prepare candidate block
+          transactionSuccessfulShouldNotBeTrue = true;
+        }
+
+        if (transaction.from === '0000000000000000000000000000000000000000') {
+            canPayFee = true;
+            isSignatureValid = true;
+        }
+
         return areKeysEqual
             && canPayFee
             && willNotOverflow
@@ -199,7 +307,6 @@ class BurgerNode {
     pullConfirmedTransactions() {
         let confirmedTransactions = [];
         this.chain.blocks.forEach(block => {
-            console.log(block.transactions.length);
             confirmedTransactions = confirmedTransactions.concat(block.transactions);
         });
         
