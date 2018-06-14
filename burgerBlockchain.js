@@ -143,9 +143,12 @@ class BurgerBlockchain {
 
       for (let i = 0; i < this.pendingTransactions.length; i++) {
         const transaction = this.pendingTransactions[i];
+        
         transaction.minedInBlockIndex = index;
         transaction.transferSuccessful = this.canSenderTransferTransaction(transaction);
+        transactions[0].value += transaction.fee;
         transactions.push(transaction);
+
       }
 
       const candidateBlock = new BurgerBlock(index, transactions, this.currentDifficulty, lastBlock.blockHash, minerAddress);
@@ -220,7 +223,9 @@ class BurgerBlockchain {
 
       transactions.forEach((transaction) => {
         if (transaction.from === address) {
+          balance -= transaction.fee;
           balance -= transaction.value;
+          
         } else if (transaction.to === address) {
           balance += transaction.value;
         }
