@@ -1,46 +1,35 @@
 const express = require('express')
 const path = require('path');
+const http = require('http');
+
 const BurgerBlockchain = require('./burgerBlockchain')
 const BurgerNode = require('./burgerNode')
-const BurgerMiner = require('./burgerMiner')
 const BurgerFaucet = require('./burgerFaucet');
 const BurgerSync = require('./burgerSync');
 
 var bodyParser = require('body-parser');
-var WebSocket = require("ws");
 var cors = require('cors');
 
 const app = express();
+const server = http.createServer(app);
+
 app.use(cors());
 app.use(bodyParser.json());
 
-const hostName = process.env.HOST || 'localhost';
-var http_port = process.env.HTTP_PORT || 3001;
-var p2p_port = process.env.P2P_PORT || 6001;
+const REMOTE_HOST = process.env.REMOTE_HOST;
+const HOST_NAME = process.env.HOST || 'localhost';
+const PORT = process.env.PORT || 3001;
 var initialPeers = process.env.PEERS ? process.env.PEERS.split(',') : [];
 
 let burgerSync;
 
-var sockets = [];
-
-var MessageType = {
-    QUERY_LATEST: 0,
-    QUERY_ALL: 1,
-    RESPONSE_BLOCKCHAIN: 2
-};
-
 const config = {
-    host: hostName,
-    port: http_port,
-    websocketPort: p2p_port,
-    selfUrl: `${hostName}:${p2p_port}`,
+    host: HOST_NAME,
+    port: PORT,
+    selfUrl: REMOTE_HOST || `${HOST_NAME}:${PORT}`,
 };
 
 const burgerNode = new BurgerNode(new BurgerBlockchain(), config);
-
-const initializeServer = () => {
-    app.listen(http_port, () => console.log('Listening http on port: ' + http_port))
-}
 
 app.use('/', express.static(path.resolve('public')));
 
@@ -55,7 +44,7 @@ app.get('/blocks', (request, response) => {
 app.get('/blocks/:index', (request, response) => {
     const index = request.params.index
     const block = burgerNode.findBlockByIndex(index)
-    response.json(block)
+    response.json(block) 
 })
 
 app.post('/mining/submit-mined-block', (request, response) => {
@@ -120,9 +109,9 @@ app.get('/peers', (req, res) => {
     res.send(burgerNode.nodes);
 })
 
-app.post('/peers/connect', (req, res) => {
+app.post('/peers/connect', async (req, res) => {
     try {
-        burgerSync.connect(req.body.peer);
+        await burgerSync.connect(req.body.peer);
         res.status(200).send('Success!');
     } catch(e) {
         res.status(400).send(e.message);
@@ -140,7 +129,6 @@ app.get('/debug', (req, res) => {
     res.json({
         "node": burgerNode,
         "config": config,
-        "candidateBlock": burgerNode.chain.prepareCandidateBlock('0000000000000000000001')
     });
 })
 
@@ -151,6 +139,7 @@ app.get('/debug/reset-chain', (req, res) => {
     });
 })
 
+<<<<<<< HEAD
 var initP2PServer = () => {
 <<<<<<< HEAD
     var server = new WebSocket.Server({
@@ -212,6 +201,11 @@ var connectToPeers = (newPeers) => {
     burgerSync = new BurgerSync(p2p_port, burgerNode);
 >>>>>>> e28b3cf28080fcb34ff03b45c41d40791d6cfcfe
 };
+=======
+const initializeServer = () => {
+    burgerSync = new BurgerSync(server, burgerNode);
+    server.listen(PORT, () => console.log('HTTP and P2P is listening on port: ' + PORT));
+}
+>>>>>>> 7a053acb888c60b94caf14fc74f09ad0c86d1011
 
-initializeServer()
-initP2PServer();
+initializeServer();
