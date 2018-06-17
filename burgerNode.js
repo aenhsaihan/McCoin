@@ -49,9 +49,80 @@ class BurgerNode {
     }
 
     appendPendingTransactions(pendingTransactions) {
-        pendingTransactions.forEach((transaction) => {
+        let allPendingTransactions = pendingTransactions;
+
+        if (pendingTransactions.length == 0 && this.chain.pendingTransactions.length == 0) {
+            /**
+             * Nothing to do here!
+             */
+            return this.chain.pendingTransactions;
+        }
+
+        if (this.chain.pendingTransactions.length > 0 && pendingTransactions.length > 0) {
+            /**
+             * Append operation between incoming pending transactions and own pending transactions
+             */
+            for (let currentPendingIndex = 0; currentPendingIndex < this.chain.pendingTransactions.length; currentPendingIndex++) {
+                const transaction = this.chain.pendingTransactions[currentPendingIndex];
+                for (let allPendingIndex = 0; allPendingIndex < allPendingTransactions.length; allPendingIndex++) {
+                    if (JSON.stringify(transaction) === JSON.stringify(allPendingTransactions[allPendingIndex])) {
+                        allPendingTransactions[allPendingIndex] = 0;
+                    }
+                }
+            }
+ 
+            allPendingTransactions = allPendingTransactions.filter((transactions) => {
+                return transactions !== 0;
+            });
+        }
+    
+        if (pendingTransactions.length > 0 && this.chain.pendingTransactions.length === 0) {
+            /**
+             * Sync the incoming pending transactions.
+             */
+            allPendingTransactions = pendingTransactions;
+        }
+
+        if (pendingTransactions.length === 0 && this.chain.pendingTransactions.length > 0) {
+            /**
+             * Nothing to append!
+             */
+            return this.chain.pendingTransactions;
+        }
+
+        /**
+         * Clear the current pending transactions to 
+         * prepare it for the appended one.
+         */
+        this.chain.pendingTransactions = [];
+        
+        allPendingTransactions.forEach((transaction) => {
             this.addPendingTransaction(transaction);
-        })
+        });
+
+        this.cleanPendingTransactions(this.chain.pendingTransactions);
+
+        return this.chain.pendingTransactions;
+    }
+
+    cleanPendingTransactions(pendingTransactionsData) {
+        let pendingTransactions = pendingTransactionsData;
+        
+        for (let index = 0; index < this.pullConfirmedTransactions().length; index++) {
+            const transaction = this.pullConfirmedTransactions()[index];
+            for (let pendingIndex = 0; pendingIndex < pendingTransactions.length; pendingIndex++) {
+                if (transaction.transactionDataHash === pendingTransactions[pendingIndex].transactionDataHash) {
+                    pendingTransactions[pendingIndex] = 0;
+                }
+            }
+        }
+
+        pendingTransactions = pendingTransactions.filter((transaction) => {
+            return transaction !== 0;
+        });
+
+        this.chain.pendingTransactions = pendingTransactions;
+        return this.chain.pendingTransactions;
     }
 
     validateTransactionsOfBlock(block) {
@@ -77,8 +148,9 @@ class BurgerNode {
 
       for (var i = 1; i < newChain.blocks.length; i++) {
         const newBlock = newChain.blocks[i]
-        // newBlock.prevBlockhash = "somestring"; // just for testing purposes!!!
-        const areBlockKeysAndValuesValid = BurgerBlock.validateBlock(newBlock); // just validating keys/values
+
+        // just validating keys/values
+        const areBlockKeysAndValuesValid = BurgerBlock.validateBlock(newBlock);
 
         // re-calculate block data hash
         const compareBlock = new BurgerBlock(
@@ -120,7 +192,7 @@ class BurgerNode {
       }
 
       return areBlocksValid;
-    }
+    } 
 
     validateGenesisBlock(newChain) {
       // [Anar] maybe this logic should go in the chain?
@@ -147,19 +219,35 @@ class BurgerNode {
     }
 
     replaceChain(newChain) {
-      const isChainValid = this.validateChain(newChain);
-      const newChainInstance = BurgerBlockchain.createNewInstance(newChain);
-      const pendingTransactions = this.chain.pendingTransactions;
+        const isChainValid = this.validateChain(newChain);
+        const newChainInstance = BurgerBlockchain.createNewInstance(newChain);
 
-      const hasMoreCumulativeDifficulty = newChainInstance.calculateCumulativeDifficulty() > this.chain.calculateCumulativeDifficulty();
+        const miningJobs = this.chain.miningJobs
 
-      if (isChainValid && hasMoreCumulativeDifficulty) {
-        // [Anar] TODO: clear mining jobs if cumulativeDifficulty is higher than current chain
-        this.chain = newChainInstance;
-        this.appendPendingTransactions(pendingTransactions);
-      } else {
-        console.log('Received chain is not valid, rejecting...');
-      }
+        const newChainCumulativeDifficulty = newChainInstance.calculateCumulativeDifficulty();
+        const currentChainCumulativeDifficulty = this.chain.calculateCumulativeDifficulty();
+        const hasMoreCumulativeDifficulty = newChainCumulativeDifficulty > currentChainCumulativeDifficulty;
+
+        if (isChainValid && hasMoreCumulativeDifficulty) {
+            const pendingTransactions = this.chain.pendingTransactions;
+            this.chain = newChainInstance;
+            this.appendPendingTransactions(pendingTransactions);
+            this.chain.miningJobs = miningJobs;
+            this.chain.clearMiningJobsBeforeBlockIndex(this.chain.currentDifficulty);
+            console.log('SUCCESS: Received chain accepted!');
+            return true;
+        } else {
+            if (!isChainValid) {
+                console.log('REJECTED! Received chain is not valid!');
+                return false;
+            }
+
+            if (newChainCumulativeDifficulty === currentChainCumulativeDifficulty) {
+                console.log('Chain difficulties are equal! Got nothing to do...');
+                return false;
+            }
+            return false;
+        }
     }
 
     getBlocks() {
@@ -192,18 +280,29 @@ class BurgerNode {
             senderSignature,
         } = transaction;
 
-        const burgerTransaction = new BurgerTransaction(from, to, value, fee, dateCreated, data, senderPubKey, senderSignature);
+        let burgerTransaction;
+        let isValid;
 
-        if (this.validateTransaction(burgerTransaction)) {
-            this.chain.pendingTransactions.push(burgerTransaction);
-            return true;
+        try {
+            burgerTransaction = new BurgerTransaction(from, to, value, fee, dateCreated, data, senderPubKey, senderSignature);
+            isValid = this.validateTransaction(burgerTransaction);
+        } catch (e) {
+            console.log(e.message);
+            return false;
         }
 
-        return false;
-    }
+        if (isValid) {
+            this.chain.pendingTransactions.push(burgerTransaction);
+            console.log('Transaction ' + burgerTransaction.transactionDataHash + ' accepted!')
+            return true;
+        } else {
+            console.log('Transaction ' + burgerTransaction.transactionDataHash + ' failed!');
+            return false;
+        }
+    } 
 
     addMinedBlock(minedBlock) {
-        this.chain.addMinedBlock(minedBlock);
+        return this.chain.addMinedBlock(minedBlock);
     }
 
     getPendingBalanceOfAddress(address) {
@@ -219,7 +318,7 @@ class BurgerNode {
       return this.chain.getSafeBalanceOfAddress(address);
     }
 
-    validateTransaction(transaction, block) {
+    validateTransaction(transaction) {
         const validKeys = [
             'from',
             'to',
@@ -252,13 +351,14 @@ class BurgerNode {
 
         const transactionDataHashMustBeUnique = this.chain.pendingTransactions.filter(tx => tx.transactionDataHash === transaction.transactionDataHash).length === 0;
         const isValidTransactionDataHash = transaction.transactionDataHash === BurgerTransaction.computetransactionDataHash(transaction);
-        const areNumbersOfCorrectType = typeof transaction.fee === 'number' && typeof transaction.value === 'number';
-        let transactionSuccessfulShouldNotBeTrue = !transaction.transferSuccessful; // make it let for now
 
-        if (block) {
-          // replay transactionSuccessful here using logic from the burgerChain prepare candidate block
-          transactionSuccessfulShouldNotBeTrue = true;
-        }
+        transaction.fee = parseInt(transaction.fee);
+        transaction.value = parseInt(transaction.value);
+
+        const areNumbersOfCorrectType = typeof transaction.fee === 'number' 
+                                        && typeof transaction.value === 'number'
+                                        && !isNaN(transaction.fee)
+                                        && !isNaN(transaction.value);
 
         if (transaction.from === '0000000000000000000000000000000000000000') {
             canPayFee = true;
@@ -277,7 +377,6 @@ class BurgerNode {
             && transactionDataHashMustBeUnique
             && isValidTransactionDataHash
             && areNumbersOfCorrectType
-            && transactionSuccessfulShouldNotBeTrue
     }
 
     validateAddress(address) {
@@ -293,21 +392,19 @@ class BurgerNode {
                 return transaction.to === address || transaction.from === address;
             });
             if (blockTransaction.length > 0) {
-                transactions = transactions.concat(transactions, blockTransaction);
+                transactions = transactions.concat(blockTransaction);
             }
         }
-
         const pendingTransactions = this.chain.pendingTransactions.filter((transaction) => {
             return transaction.to === address || transaction.from === address;
         });
         if (pendingTransactions.length > 0) {
-            transactions = transactions.concat(transactions, pendingTransactions);
+            transactions = transactions.concat(pendingTransactions);
         }
 
         transactions.sort((tx1, tx2) => {
             return new Date(tx1.dateCreated) < new Date(tx2.dateCreated);
         });
-
         return {address, transactions};
     }
 

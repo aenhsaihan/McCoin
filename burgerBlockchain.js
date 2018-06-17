@@ -12,13 +12,12 @@ class BurgerBlockchain {
         this.currentDifficulty = currentDifficulty;
         
         this.cumulativeDifficulty = 0;
-        this.miningJobs = new Map();
+        this.miningJobs = [];
     }
 
     static createNewInstance(chainData) {
       const burgerBlockchainInstance = new BurgerBlockchain();
       Object.assign(burgerBlockchainInstance, chainData);
-      burgerBlockchainInstance.miningJobs = new Map();
       return burgerBlockchainInstance;
     }
 
@@ -56,7 +55,7 @@ class BurgerBlockchain {
     }
 
     addBlock(block) {
-        this.cumulativeDifficulty += block.difficulty; // temporary implementation while waiting for Issue #46
+        this.cumulativeDifficulty += this._getCumulativeDifficultyValue(block.difficulty);
 
         this.flushPendingTransactions(block);
         this.blocks.push(block);
@@ -80,7 +79,7 @@ class BurgerBlockchain {
     }
 
     createMiningJob(block) {
-        this.miningJobs.set(block.blockDataHash, block);
+      this.miningJobs[block.blockDataHash] = block;
     }
 
     resetChain() {
@@ -102,7 +101,7 @@ class BurgerBlockchain {
     }
 
     addMinedBlock(minedBlock) {
-      let block = this.miningJobs.get(minedBlock.blockDataHash);
+      let block = this.miningJobs[minedBlock.blockDataHash];
 
       if (!block) {
         console.log('REJECTED: Submitted block not found in jobs, possibly mined by someone else first.');
@@ -121,11 +120,19 @@ class BurgerBlockchain {
 
       if (this.canAddBlock(block)) {
         this.addBlock(block);
-        this.miningJobs.delete(block.blockHash);
+        this.clearMiningJobsBeforeBlockIndex(block.index);
         console.log('Submitted block has been added to chain');
+        return true;
       } else {
         console.log('Submitted block has failed to be added to chain');
+        return false;
       }
+    }
+
+    clearMiningJobsBeforeBlockIndex(index) {
+      this.miningJobs = this.miningJobs.filter((miningJob) => {
+        return miningJob.index > index;
+      });
     }
 
     isBlockValid(block) {
@@ -147,9 +154,12 @@ class BurgerBlockchain {
         
         transaction.minedInBlockIndex = index;
         transaction.transferSuccessful = this.canSenderTransferTransaction(transaction);
-        transactions[0].value += transaction.fee;
-        transactions.push(transaction);
-
+        
+        const duplicateTransaction = transactions.filter(tx => tx.transactionDataHash === transaction.transactionDataHash);
+        if (duplicateTransaction.length <= 0) {
+          transactions[0].value += transaction.fee;
+          transactions.push(transaction);
+        }
       }
 
       const candidateBlock = new BurgerBlock(index, transactions, this.currentDifficulty, lastBlock.blockHash, minerAddress);
@@ -256,10 +266,14 @@ class BurgerBlockchain {
       for (let i = 0; i < blocks.length; i++) {
         const block = blocks[i];
 
-        cumulativeDifficulty += Math.pow(16, block.difficulty);
+        cumulativeDifficulty += this._getCumulativeDifficultyValue(block.difficulty);
       }
 
       return cumulativeDifficulty;
+    }
+
+    _getCumulativeDifficultyValue(difficulty) {
+      return Math.pow(16, difficulty);
     }
 }
 

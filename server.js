@@ -48,9 +48,13 @@ app.get('/blocks/:index', (request, response) => {
 })
 
 app.post('/mining/submit-mined-block', (request, response) => {
-    burgerNode.addMinedBlock(request.body);
-    burgerSync.broadcastNewBlock(burgerNode.chain);
-    response.send();
+    const isBlockValid = burgerNode.addMinedBlock(request.body);
+
+    if (isBlockValid) {
+        burgerSync.broadcastNewBlock(burgerNode.chain);
+    }
+
+    response.json({status: 'Success!'});
 })
 
 app.get('/mining/get-mining-job/:address', (request, response) => {
@@ -107,7 +111,19 @@ app.get('/peers', (req, res) => {
 
 app.post('/peers/connect', async (req, res) => {
     try {
-        await burgerSync.connect(req.body.peer);
+        if (req.body.peer) {
+            await burgerSync.connect(req.body.peer);
+        }
+
+        /**
+         * For debugging purposes to quickly initialize a mesh network
+         */
+        if (req.body.peers) {
+            const peers = req.body.peers;
+            peers.forEach(async (peer) => {
+                await burgerSync.connect(peer);
+            });
+        }
         res.status(200).send('Success!');
     } catch(e) {
         res.status(400).send(e.message);

@@ -6,7 +6,7 @@ const EC = require('elliptic').ec;
 const secp256k1 = new EC('secp256k1');
 
 const host = process.argv[2] || process.env.HOST ||"http://localhost";
-const port = process.argv[3] || process.env.HTTP_PORT || 3001;
+const port = process.argv[3] || process.env.PORT || 3001;
 const uri = host + ':' + port;
 class BurgerWallet {
     /**
