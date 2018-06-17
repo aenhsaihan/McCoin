@@ -45,11 +45,11 @@ app.get('/blocks/:index', (request, response) => {
     const index = request.params.index
     if(burgerNode.chain.length > index){
         const block = burgerNode.findBlockByIndex(index)
-        response.json(block).status(200);
+        response.status(200).json(block);
     }else{
-        response.json({
+        response.status(404).json({
             "errorMsg": "Invalid block index"
-        }).status(404);
+        });
     }
 })
 
@@ -57,18 +57,18 @@ app.post('/mining/submit-mined-block', (request, response) => {
    let minedRes = burgerNode.addMinedBlock(request.body);
     burgerSync.broadcastNewBlock(burgerNode.chain);
     if(minedRes[0]){
-        response.json({
+        response.status(200).json({
             "message":minedRes[1]
-        }).status(200);
+        });
     }else{
         if(minedRes[1]==="Block not found or already mined"){
-            response.json({
+            response.status(404).json({
                 "errorMsg":minedRes[1]
-            }).status(404);
+            });
         }else{
-            response.json({
+            response.status(400).json({
                 "errorMsg":minedRes[1]
-            }).status(404);
+            });
         }
     }
     
@@ -92,13 +92,13 @@ app.post('/transactions/send', (req, res) => {
     const isTransactionValid = burgerNode.addPendingTransaction(req.body);
     if (isTransactionValid) {
         burgerSync.broadcastNewTransaction(transaction);
-        res.json({
+        res.status(200).json({
             "transactionDataHash":transaction.transactionDataHash
-        }).status(200);
+        });
     } else {
-        res.json({
+        res.status(404).json({
             "errorMsg":"Invalid Transaction"
-        }).status(404);
+        });
     }
 })
 
@@ -109,11 +109,11 @@ app.get('/address/:address/balance', (req, res) => {
         const confirmedBalance = burgerNode.getConfirmedBalanceOfAddress(address);
         const pendingBalance = burgerNode.getPendingBalanceOfAddress(address);
 
-        res.json({
+        res.status(200).json({
             safeBalance,
             confirmedBalance: parseFloat(confirmedBalance),
             pendingBalance
-        }).status(200);
+        });
     
 
 })
@@ -121,12 +121,12 @@ app.get('/address/:address/balance', (req, res) => {
 app.get('/address/:address/transactions', (req, res) => {
     const address = req.params.address;
     if(burgerNode.chain.getTransactionsOfAddress(address).transactions.length > 0){
-       res.json(burgerNode.getTransactionsOfAddress(address)).status(200);
+       res.status(200).json(burgerNode.getTransactionsOfAddress(address));
     }
     else{
-        res.json({
+        res.status(404).json({
             "errorMsg":"Invalid address"
-        }).status(404);
+        });
     }
 
 });
