@@ -55,23 +55,50 @@ app.get('/blocks/:index', (request, response) => {
 
 app.post('/mining/submit-mined-block', (request, response) => {
    let minedRes = burgerNode.addMinedBlock(request.body);
-    burgerSync.broadcastNewBlock(burgerNode.chain);
-    if(minedRes[0]){
+    burgerSync.broadcastNewBlock(request.body);
+
+    const minedBlockAccepted = minedRes[0];
+    const result = minedRes[1];
+    const resultType = minedRes[2];
+
+    const minedResultType = burgerNode.chain.resultType;
+    switch (resultType) {
+      case minedResultType.VALID_BLOCK:
         response.json({
-            "message":minedRes[1]
+            "message": result
         }).status(200);
-    }else{
-        if(minedRes[1]==="Block not found or already mined"){
-            response.json({
-                "errorMsg":minedRes[1]
-            }).status(404);
-        }else{
-            response.json({
-                "errorMsg":minedRes[1]
-            }).status(404);
-        }
+        break;
+      case minedResultType.INVALID_BLOCK:
+        response.json({
+            "errorMsg": result
+        }).status(404);
+      default:
+        // [Anar] not sure what a good default action would be...
+        // also, I was gonna have BLOCK_WAY_AHEAD here, but that
+        // seemed illogical at the time. Why would I submit a block
+        // that is way ahead of my own chain???
+        response.json({
+            "errorMsg": result
+        }).status(404);
     }
-    
+
+    // if(minedBlockAccepted){
+    //     response.json({
+    //         "message": result
+    //     }).status(200);
+    // } else {
+    //     // [Anar] this next line is not a good idea, just a note
+    //     if(minedRes[1]==="Block not found or already mined"){
+    //         response.json({
+    //             "errorMsg": result
+    //         }).status(404);
+    //     }else{
+    //         response.json({
+    //             "errorMsg": result
+    //         }).status(404);
+    //     }
+    // }
+
 })
 
 app.get('/mining/get-mining-job/:address', (request, response) => {
@@ -104,7 +131,7 @@ app.post('/transactions/send', (req, res) => {
 
 app.get('/address/:address/balance', (req, res) => {
     const address = req.params.address;
-    
+
         const safeBalance = burgerNode.getSafeBalanceOfAddress(address);
         const confirmedBalance = burgerNode.getConfirmedBalanceOfAddress(address);
         const pendingBalance = burgerNode.getPendingBalanceOfAddress(address);
@@ -114,7 +141,7 @@ app.get('/address/:address/balance', (req, res) => {
             confirmedBalance: parseFloat(confirmedBalance),
             pendingBalance
         }).status(200);
-    
+
 
 })
 
@@ -159,7 +186,7 @@ app.post('/peers/connect', async (req, res) => {
             "message": "Connected to peer: "+req.body.peer
         });
     } catch(e) {
-        res.status(e.status).send(e.message); 
+        res.status(e.status).send(e.message);
     }
 })
 
