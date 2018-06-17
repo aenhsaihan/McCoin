@@ -203,7 +203,7 @@ class BurgerNode {
     }
 
     addMinedBlock(minedBlock) {
-        this.chain.addMinedBlock(minedBlock);
+        return this.chain.addMinedBlock(minedBlock);
     }
 
     getPendingBalanceOfAddress(address) {

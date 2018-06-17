@@ -43,14 +43,35 @@ app.get('/blocks', (request, response) => {
 
 app.get('/blocks/:index', (request, response) => {
     const index = request.params.index
-    const block = burgerNode.findBlockByIndex(index)
-    response.json(block) 
+    if(burgerNode.chain.length > index){
+        const block = burgerNode.findBlockByIndex(index)
+        response.json(block).status(200);
+    }else{
+        response.json({
+            "errorMsg": "Invalid block index"
+        }).status(404);
+    }
 })
 
 app.post('/mining/submit-mined-block', (request, response) => {
-    burgerNode.addMinedBlock(request.body);
+   let minedRes = burgerNode.addMinedBlock(request.body);
     burgerSync.broadcastNewBlock(burgerNode.chain);
-    response.send();
+    if(minedRes[0]){
+        response.json({
+            "message":minedRes[1]
+        }).status(200);
+    }else{
+        if(minedRes[1]==="Block not found or already mined"){
+            response.json({
+                "errorMsg":minedRes[1]
+            }).status(404);
+        }else{
+            response.json({
+                "errorMsg":minedRes[1]
+            }).status(404);
+        }
+    }
+    
 })
 
 app.get('/mining/get-mining-job/:address', (request, response) => {
@@ -59,11 +80,7 @@ app.get('/mining/get-mining-job/:address', (request, response) => {
     response.json(information);
 })
 app.get('/transactions/confirmed',(req, res) => {
-<<<<<<< HEAD
-    const confirmedTransactions = burgerNode.pullConfirmedTransactions();
-=======
     const confirmedTransactions =  burgerNode.pullConfirmedTransactions();
->>>>>>> e28b3cf28080fcb34ff03b45c41d40791d6cfcfe
     res.json(confirmedTransactions)
 })
 app.get('/transactions/pending',(req, res) => {
@@ -75,29 +92,43 @@ app.post('/transactions/send', (req, res) => {
     const isTransactionValid = burgerNode.addPendingTransaction(req.body);
     if (isTransactionValid) {
         burgerSync.broadcastNewTransaction(transaction);
-        res.send("Transaction accepted!");
+        res.json({
+            "transactionDataHash":transaction.transactionDataHash
+        }).status(200);
     } else {
-        res.send("TRANSACTION REJECTED");
+        res.json({
+            "errorMsg":"Invalid Transaction"
+        }).status(404);
     }
 })
 
 app.get('/address/:address/balance', (req, res) => {
     const address = req.params.address;
+    
+        const safeBalance = burgerNode.getSafeBalanceOfAddress(address);
+        const confirmedBalance = burgerNode.getConfirmedBalanceOfAddress(address);
+        const pendingBalance = burgerNode.getPendingBalanceOfAddress(address);
 
-    const safeBalance = burgerNode.getSafeBalanceOfAddress(address);
-    const confirmedBalance = burgerNode.getConfirmedBalanceOfAddress(address);
-    const pendingBalance = burgerNode.getPendingBalanceOfAddress(address);
+        res.json({
+            safeBalance,
+            confirmedBalance: parseFloat(confirmedBalance),
+            pendingBalance
+        }).status(200);
+    
 
-    res.json({
-        safeBalance,
-        confirmedBalance: parseFloat(confirmedBalance),
-        pendingBalance
-    });
 })
 
 app.get('/address/:address/transactions', (req, res) => {
     const address = req.params.address;
-    res.json(burgerNode.getTransactionsOfAddress(address));
+    if(burgerNode.chain.getTransactionsOfAddress(address).transactions.length > 0){
+       res.json(burgerNode.getTransactionsOfAddress(address)).status(200);
+    }
+    else{
+        res.json({
+            "errorMsg":"Invalid address"
+        }).status(404);
+    }
+
 });
 
 app.get('/transactions/:transactionDataHash', (req, res) => {
@@ -112,7 +143,10 @@ app.get('/peers', (req, res) => {
 app.post('/peers/connect', async (req, res) => {
     try {
         await burgerSync.connect(req.body.peer);
-        res.status(200).send('Success!');
+        res.status(200).json({
+            "message":
+      "Connected to peer: "+req.body.peer
+        });
     } catch(e) {
         res.status(400).send(e.message);
     }
@@ -139,73 +173,10 @@ app.get('/debug/reset-chain', (req, res) => {
     });
 })
 
-<<<<<<< HEAD
-var initP2PServer = () => {
-<<<<<<< HEAD
-    var server = new WebSocket.Server({
-        port: p2p_port
-    });
-    server.on('connection', ws => initConnection(ws));
-    console.log('listening websocket p2p port on: ' + p2p_port);
-};
-
-var initConnection = (ws) => {
-    sockets.push(ws);
-    burgerNode.nodes = sockets.map(s => s._socket.remoteAddress + ":" + s._socket.remotePort);
-    initMessageHandler(ws);
-    initErrorHandler(ws);
-    write(ws, queryChainLengthMsg());
-};
-
-
-
-var initMessageHandler = (ws) => {
-    ws.on('message', (data) => {
-        var message = JSON.parse(data);
-        console.log('Received message' + JSON.stringify(message));
-        switch (message.type) {
-            case MessageType.QUERY_LATEST:
-                write(ws, responseLatestMsg());
-                break;
-            case MessageType.QUERY_ALL:
-                write(ws, responseChainMsg());
-                break;
-            case MessageType.RESPONSE_BLOCKCHAIN:
-                handleBlockchainResponse(message);
-                break;
-        }
-    });
-};
-
-var initErrorHandler = (ws) => {
-    var closeConnection = (ws) => {
-        console.log('connection failed to peer: ' + ws.url);
-        sockets.splice(sockets.indexOf(ws), 1);
-        burgerNode.nodes = sockets.map(s => s._socket.remoteAddress + ":" + s._socket.remotePort);
-    };
-    ws.on('close', () => closeConnection(ws));
-    ws.on('error', () => closeConnection(ws));
-};
-
-var connectToPeers = (newPeers) => {
-    newPeers.forEach((peer) => {
-        const ws = new WebSocket(peer);
-        ws.on('open', () => initConnection(ws));
-        ws.on('error', () => {
-            console.log('connection failed')
-        });
-
-    });
-
-=======
-    burgerSync = new BurgerSync(p2p_port, burgerNode);
->>>>>>> e28b3cf28080fcb34ff03b45c41d40791d6cfcfe
-};
-=======
 const initializeServer = () => {
     burgerSync = new BurgerSync(server, burgerNode);
     server.listen(PORT, () => console.log('HTTP and P2P is listening on port: ' + PORT));
 }
->>>>>>> 7a053acb888c60b94caf14fc74f09ad0c86d1011
+
 
 initializeServer();

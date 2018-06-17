@@ -106,7 +106,7 @@ class BurgerBlockchain {
 
       if (!block) {
         console.log('REJECTED: Submitted block not found in jobs, possibly mined by someone else first.');
-        return false;
+        return [false,"Block not found or already mined"];
       }
 
       const {
@@ -123,8 +123,10 @@ class BurgerBlockchain {
         this.addBlock(block);
         this.miningJobs.delete(block.blockHash);
         console.log('Submitted block has been added to chain');
+        return [true,"Block accepted, reward paid: "+block.transactions[0].value+" microburgers"]
       } else {
         console.log('Submitted block has failed to be added to chain');
+        return [false,"Block hash is incorrectly calculated"];
       }
     }
 
