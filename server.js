@@ -142,13 +142,24 @@ app.get('/peers', (req, res) => {
 
 app.post('/peers/connect', async (req, res) => {
     try {
-        await burgerSync.connect(req.body.peer);
+        if (req.body.peer) {
+            await burgerSync.connect(req.body.peer);
+        }
+
+        /**
+         * For debugging purposes to quickly initialize a mesh network
+         */
+        if (req.body.peers) {
+            const peers = req.body.peers;
+            peers.forEach(async (peer) => {
+                await burgerSync.connect(peer);
+            });
+        }
         res.status(200).json({
-            "message":
-      "Connected to peer: "+req.body.peer
+            "message": "Connected to peer: "+req.body.peer
         });
     } catch(e) {
-        res.status(400).send(e.message);
+        res.status(e.status).send(e.message); 
     }
 })
 

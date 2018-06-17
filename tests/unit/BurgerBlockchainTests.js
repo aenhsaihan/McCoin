@@ -35,7 +35,7 @@ describe('BurgerBlockchain', function () {
             burgerBlockchain.pendingTransactions.push(burgerTransaction);
 
             burgerBlockchain.addBlock(burgerBlock);
-            assert.equal(burgerBlockchain.cumulativeDifficulty, burgerBlock.difficulty);
+            assert.equal(burgerBlockchain.cumulativeDifficulty, Math.pow(16, 100));
             assert.equal(burgerBlockchain.blocks.length, 2);
         });
     });
@@ -68,8 +68,8 @@ describe('BurgerBlockchain', function () {
             const burgerBlock = new BurgerBlock(1, [burgerTransaction1], 100, '', '');
             burgerBlockchain.createMiningJob(burgerBlock);
 
-            assert.equal(burgerBlockchain.miningJobs.size, 1);
-            assert.equal(burgerBlockchain.miningJobs.get(burgerBlock.blockDataHash).blockDataHash, burgerBlock.blockDataHash);
+            assert.equal(Object.keys(burgerBlockchain.miningJobs).length, 1);
+            assert.equal(burgerBlockchain.miningJobs[burgerBlock.blockDataHash].blockDataHash, burgerBlock.blockDataHash);
         });
     });
     describe('#getLastBlock()', function () {
@@ -131,23 +131,38 @@ describe('BurgerBlockchain', function () {
     describe('#prepareCandidateBlock', function () {
         it('Should prepare a candidate block properly', function () {
             const candidateBlock = burgerBlockchain.prepareCandidateBlock('Arthur McKinley');
-
-            assert.equal(candidateBlock.transactions.length, 1);
+            
+            assert.equal(Object.keys(burgerBlockchain.miningJobs).length, 1);
             assert.equal(candidateBlock.transactions[0].to, 'Arthur McKinley');
-            assert.equal(burgerBlockchain.miningJobs.size, 1);
-            assert.equal(burgerBlockchain.miningJobs.get(candidateBlock.blockDataHash).minedBy, 'Arthur McKinley');
+            assert.equal(Object.keys(burgerBlockchain.miningJobs).length, 1);
+            assert.equal(burgerBlockchain.miningJobs[candidateBlock.blockDataHash].minedBy, 'Arthur McKinley');
         });
         it('Should add the pending transactions to the candidate block', function () {
-            const burgerTransaction1 = new BurgerTransaction(1, 2, 3, 4, new Date(), 5, 6, 7);
-            const burgerTransaction2 = new BurgerTransaction(7, 6, 5, 4, new Date(), 3, 2, 1);
-            burgerBlockchain.pendingTransactions.push(burgerTransaction1);
-            burgerBlockchain.pendingTransactions.push(burgerTransaction2);
+            let validTransaction = new BurgerTransaction(1, 2, 3, 4, new Date(), 5, 6, 7);
+            Object.assign(validTransaction, {
+                "from": "e9e12fe5c7d3330f83d7a374ca1bacc0cc730196",
+                "to": "0c85108aeae5c933c3c1d97557908281398822c6",
+                "value": 100,
+                "fee": 10,
+                "dateCreated": "2018-06-13T19:57:38.431Z",
+                "data": "",
+                "senderPubKey": "7135be26422c9edf15ebb3076694f9acb5f6d37460b8352225863a32247b04fd1",
+                "senderSignature": [
+                    "c49442a0dde3e97a6aaa3a1350cd574a4ef9b058038d7b06864dfbccddaa113b",
+                    "853b8d4e2654b4aedf0b349ef0650f634426b8f7c572523b78f4952af0c5d5c2"
+                ],
+                "minedInBlockIndex": null,
+                "transferSuccessful": null,
+                "transactionDataHash": "3b473d6481df109d20e211d7350c54cee1f7348f394e225041a1140072372864"
+            });
+            burgerBlockchain.pendingTransactions.push(validTransaction);
 
             const candidateBlock = burgerBlockchain.prepareCandidateBlock('Magellan');
-            assert.equal(candidateBlock.transactions.length, 3);
+
+            assert.equal(candidateBlock.transactions.length, 2);
             assert.equal(candidateBlock.transactions[0].to, 'Magellan');
-            assert.equal(burgerBlockchain.miningJobs.size, 1);
-            assert.equal(burgerBlockchain.miningJobs.get(candidateBlock.blockDataHash).minedBy, 'Magellan');
+            assert.equal(Object.keys(burgerBlockchain.miningJobs).length, 1);
+            assert.equal(burgerBlockchain.miningJobs[candidateBlock.blockDataHash].minedBy, 'Magellan');
         });
         it('Should verify the transactions in a block and set the transferSuccessful property correctly', function () {
             let validTransaction = new BurgerTransaction(1, 2, 3, 4, new Date(), 5, 6, 7);
@@ -192,7 +207,7 @@ describe('BurgerBlockchain', function () {
                 ],
                 "minedInBlockIndex": null,
                 "transferSuccessful": null,
-                "transactionDataHash": "7fea0e049b8e902fc86d2c1b97d36117a9fb8709e9d8f8993f2697391025b590"
+                "transactionDataHash": "00000e049b8e902fc86d2c1b97d36117a9fb8709e9d8f8993f2697391025b590"
             });
             burgerBlockchain.pendingTransactions.push({
                 "from": "e9e12fe5c7d3330f83d7a374ca1bacc0cc730196",
@@ -213,6 +228,43 @@ describe('BurgerBlockchain', function () {
             const candidateBlock = burgerBlockchain.prepareCandidateBlock('John Doe');
             assert.equal(candidateBlock.transactions.length, 3);
             assert.equal(candidateBlock.transactions[0].value, 500030);
+        });
+        it('Should not allow two same transaction data hash to go into the block', function() {
+            burgerBlockchain.pendingTransactions.push({
+                "from": "e9e12fe5c7d3330f83d7a374ca1bacc0cc730196",
+                "to": "a33d1cb7d8925f05c2036fbe58660f2a70acc10f",
+                "value": 100,
+                "fee": 10,
+                "dateCreated": "2018-06-13T20:34:56.821Z",
+                "data": "",
+                "senderPubKey": "7135be26422c9edf15ebb3076694f9acb5f6d37460b8352225863a32247b04fd1",
+                "senderSignature": [
+                    "8938d95ebffc5dd217cfcc112debf68478710e4efdb10ae6166a9c359413c449",
+                    "b37c4c8a12e57caa021781a3706d7c847f91b511d10c32271c1b8e472fb7c106"
+                ],
+                "minedInBlockIndex": null,
+                "transferSuccessful": null,
+                "transactionDataHash": "7fea0e049b8e902fc86d2c1b97d36117a9fb8709e9d8f8993f2697391025b590"
+            });
+            burgerBlockchain.pendingTransactions.push({
+                "from": "e9e12fe5c7d3330f83d7a374ca1bacc0cc730196",
+                "to": "a33d1cb7d8925f05c2036fbe58660f2a70acc10f",
+                "value": 100,
+                "fee": 20,
+                "dateCreated": "2018-06-13T20:34:56.821Z",
+                "data": "",
+                "senderPubKey": "7135be26422c9edf15ebb3076694f9acb5f6d37460b8352225863a32247b04fd1",
+                "senderSignature": [
+                    "8938d95ebffc5dd217cfcc112debf68478710e4efdb10ae6166a9c359413c449",
+                    "b37c4c8a12e57caa021781a3706d7c847f91b511d10c32271c1b8e472fb7c106"
+                ],
+                "minedInBlockIndex": null,
+                "transferSuccessful": null,
+                "transactionDataHash": "7fea0e049b8e902fc86d2c1b97d36117a9fb8709e9d8f8993f2697391025b590"
+            });
+            const candidateBlock = burgerBlockchain.prepareCandidateBlock('John Doe');
+            assert.equal(candidateBlock.transactions.length, 2);
+            assert.equal(candidateBlock.transactions[0].value, 500010);
         });
     });
     describe('#createCoinbaseTransaction()', function () {
@@ -251,33 +303,7 @@ describe('BurgerBlockchain', function () {
         let burgerBlockchain = new BurgerBlockchain();
 
         before(function () {
-            const blocks = [{
-                    "index": 0,
-                    "transactions": [{
-                        "from": "0000000000000000000000000000000000000000",
-                        "to": "e9e12fe5c7d3330f83d7a374ca1bacc0cc730196",
-                        "value": 1000000000000,
-                        "fee": 0,
-                        "dateCreated": "2018-06-13T10:01:48.471Z",
-                        "data": "The first burgers",
-                        "senderPubKey": "00000000000000000000000000000000000000000000000000000000000000000",
-                        "senderSignature": [
-                            "0000000000000000000000000000000000000000000000000000000000000000",
-                            "0000000000000000000000000000000000000000000000000000000000000000"
-                        ],
-                        "minedInBlockIndex": 0,
-                        "transferSuccessful": true,
-                        "transactionDataHash": "175f5ee0cd0e93b572729b09853f2cde411a9976abe39236dfbb9c8c7f319d4c"
-                    }],
-                    "difficulty": 0,
-                    "prevBlockhash": "0000000000000000000000000000000000000000000000000000000000000000",
-                    "minedBy": "0000000000000000000000000000000000000000",
-                    "prevBlockHash": "0000000000000000000000000000000000000000000000000000000000000000",
-                    "blockDataHash": "e6c4e5e5a6f880028bddfc0e279c350ffdbd18dff8be2f2bb61cb6e99294a01b",
-                    "nonce": 0,
-                    "dateCreated": "2018-06-13T10:01:48.474Z",
-                    "blockHash": "232e447f6a0a065112b396aaa49cc52b0ff76c37cbd9169635992c207b8f10df"
-                },
+            const blocks = [
                 {
                     "index": 1,
                     "transactions": [{
@@ -474,7 +500,7 @@ describe('BurgerBlockchain', function () {
         });
         describe('#getSafeBalanceOfAddress()', function () {
             it('Should retrieve the balance of address after 6 confirmations', function () {
-                assert.equal(burgerBlockchain.getSafeBalanceOfAddress('492bceee1efc35da07362ba7f523a8ba45469b54'), 1000000);
+                assert.equal(burgerBlockchain.getSafeBalanceOfAddress('492bceee1efc35da07362ba7f523a8ba45469b54'), 500000);
             });
         });
         describe('#getConfirmedBalanceOfAddress()', function () {
@@ -505,7 +531,7 @@ describe('BurgerBlockchain', function () {
         });
         describe('#calculateCumulativeDifficulty()', function() {
             it('Should calculate the cumulative difficulty of the chain', function() {
-                assert.equal(burgerBlockchain.calculateCumulativeDifficulty(), 458754);
+                assert.equal(burgerBlockchain.calculateCumulativeDifficulty(), (Math.pow(16, 4) * 7) + Math.pow(16, 0));
             });
         });
     }

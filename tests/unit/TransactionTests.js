@@ -40,26 +40,6 @@ describe('BurgerNode', function () {
             const result = burgerNode.validateTransaction(signedTx);
             assert.equal(false, result);
         });
-        it('Should fail due to transaction successful forced as true', function () {
-            const transaction = new BurgerTransaction(
-                sender.address,
-                receiver.address,
-                faker.random.number({
-                    min: 10,
-                    max: 100
-                }),
-                10,
-                new Date(),
-                faker.random.words(7),
-                sender.publicKey
-            );
-            
-            const signedTx = sender.sign(transaction);
-            signedTx.transferSuccessful = true;
-
-            const result = burgerNode.validateTransaction(signedTx);
-            assert.equal(false, result);
-        });
         it('Should fail due to object key mismatch', function () {
             const transaction = new BurgerTransaction(
                 sender.address,
@@ -205,12 +185,12 @@ describe('BurgerNode', function () {
             const result = burgerNode.addPendingTransaction(signedTx);
             assert.equal(false, result);
         });
-        it('Should fail due to fee and amount passed as string', function () {
+        it('Should fail due to invalid fee and amount', function () {
             const transaction = new BurgerTransaction(
                 sender.address,
                 receiver.address,
-                '50',
-                '10',
+                '50abc',
+                '10def',
                 new Date(),
                 faker.random.words(7),
                 sender.publicKey

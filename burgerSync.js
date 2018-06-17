@@ -146,36 +146,52 @@ class BurgerSync {
                 this._write(peer, this.MESSAGE_TYPE.RESPONSE_SYNC_PENDING_TRANSACTIONS, this.burgerNode.chain.pendingTransactions);
                 break;
             case this.MESSAGE_TYPE.RESPONSE_SYNC_PENDING_TRANSACTIONS:
-                this._printMessage('Pending transactions received! Syncing...')
-                this.burgerNode.appendPendingTransactions(message);
-                this._reBroadcast(peer, this.MESSAGE_TYPE.RESPONSE_SYNC_PENDING_TRANSACTIONS, message);
-                this._printMessage('    Synced!');
+                this._printMessage('Pending transactions received! Syncing...');
+                
+                if (JSON.stringify(message) !== JSON.stringify(this.burgerNode.chain.pendingTransactions)) {
+                    this.burgerNode.appendPendingTransactions(message);
+                    this._write(peer, this.MESSAGE_TYPE.RESPONSE_SYNC_PENDING_TRANSACTIONS, this.burgerNode.chain.pendingTransactions);
+                    this._printMessage('    Synced!');
+                    this._reBroadcast(peer, this.MESSAGE_TYPE.RESPONSE_SYNC_PENDING_TRANSACTIONS, message);
+                } else {
+                    this._printMessage('    Pending transactions are equal! Got nothing to do...');
+                } 
                 break; 
             case this.MESSAGE_TYPE.RESPONSE_SYNC_CHAIN:
-                /**
-                 * When chain is synced, only sync the "blocks" instead of
-                 * the whole blockchain instance.  
-                 */
                 this._printMessage('Chain received! Syncing...')
-                this.burgerNode.replaceChain(message);
-                this._reBroadcast(peer, this.MESSAGE_TYPE.RESPONSE_SYNC_CHAIN, message);
-                this._broadcast(this.MESSAGE_TYPE.RESPONSE_SYNC_PENDING_TRANSACTIONS, this.burgerNode.chain.pendingTransactions);
-                this._printMessage('    Synced!'); 
+                const isReplaceSuccessful = this.burgerNode.replaceChain(message);
+                if (isReplaceSuccessful) {
+                    this._reBroadcast(peer, this.MESSAGE_TYPE.RESPONSE_SYNC_CHAIN, message);
+                    this._printMessage('    Synced!');  
+                } else {
+                    this._printMessage('    Sync aborted!');
+                }
                 break;
             case this.MESSAGE_TYPE.BROADCAST_NEW_BLOCK:
                 this._printMessage('A new block has been mined!');
                 if (message.cumulativeDifficulty > this.burgerNode.info.cumulativeDifficulty) {
-                    this.burgerNode.replaceChain(message);
+                    this.burgerNode.replaceChain(message); 
                     this._reBroadcast(peer, this.MESSAGE_TYPE.BROADCAST_NEW_BLOCK, message);
                 }
                 break;
             case this.MESSAGE_TYPE.BROADCAST_NEW_TRANSACTION:
                 this._printMessage('Processing new broadcasted transaction...');
+                
+                const iHaveThisTransaction = this.burgerNode.chain.pendingTransactions.find((transaction) => {
+                    return transaction.transactionDataHash === message.transactionDataHash;
+                });
+
+                if (iHaveThisTransaction) {
+                    this._printMessage('    I already have this transaction in my list...')
+                    return;
+                }
+
                 const isValid = this.burgerNode.addPendingTransaction(message);
+
                 if (isValid) {
-                    this.burgerNode.addPendingTransaction(message);
-                    this._reBroadcast(peer, this.MESSAGE_TYPE.BROADCAST_NEW_TRANSACTION, message);
                     this._printMessage('    Added to pending transactions!');
+                    this._reBroadcast(peer, this.MESSAGE_TYPE.BROADCAST_NEW_TRANSACTION, message);
+                    this._printMessage('    Announced to ' + this._getPeers().length + ' peers!');
                 } else {
                     this._printMessage('    Not added to chain!')
                 }
