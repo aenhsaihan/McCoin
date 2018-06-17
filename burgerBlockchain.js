@@ -122,17 +122,10 @@ class BurgerBlockchain {
         this.addBlock(block);
         this.clearMiningJobsBeforeBlockIndex(block.index);
         console.log('Submitted block has been added to chain');
-<<<<<<< HEAD
         return [true,"Block accepted, reward paid: "+block.transactions[0].value+" microburgers"]
       } else {
         console.log('Submitted block has failed to be added to chain');
         return [false,"Block hash is incorrectly calculated"];
-=======
-        return true;
-      } else {
-        console.log('Submitted block has failed to be added to chain');
-        return false;
->>>>>>> 45745b1f0d1052e65db747f5df945a9f1427e284
       }
     }
 
