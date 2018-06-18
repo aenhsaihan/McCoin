@@ -242,8 +242,8 @@ class BurgerSync {
      *
      * @param {burgerBlockchain} chain
      */
-    broadcastNewBlock(chain) {
-        this._broadcast(this.MESSAGE_TYPE.BROADCAST_NEW_BLOCK, chain);
+    broadcastNewBlock(block) {
+        this._broadcast(this.MESSAGE_TYPE.BROADCAST_NEW_BLOCK, block);
     }
 
     /**

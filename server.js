@@ -55,11 +55,11 @@ app.get('/blocks/:index', (request, response) => {
 
 app.post('/mining/submit-mined-block', (request, response) => {
    let minedRes = burgerNode.addMinedBlock(request.body);
-    burgerSync.broadcastNewBlock(request.body);
 
     const minedBlockAccepted = minedRes[0];
     const result = minedRes[1];
     const resultType = minedRes[2];
+    const block = minedRes[3];
 
     const minedResultType = burgerNode.chain.resultType;
     switch (resultType) {
@@ -67,6 +67,7 @@ app.post('/mining/submit-mined-block', (request, response) => {
         response.json({
             "message": result
         }).status(200);
+        burgerSync.broadcastNewBlock(block);
         break;
       case minedResultType.INVALID_BLOCK:
         response.json({

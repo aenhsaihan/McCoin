@@ -124,7 +124,7 @@ class BurgerBlockchain {
           this.addBlock(block);
           this.clearMiningJobsBeforeBlockIndex(block.index);
           console.log('Submitted block has been added to chain');
-          return [true,"Block accepted, reward paid: "+block.transactions[0].value+" microburgers", this.resultType.VALID_BLOCK];
+          return [true, "Block accepted, reward paid: "+block.transactions[0].value+" microburgers", this.resultType.VALID_BLOCK, block];
           break;
         case this.resultType.INVALID_BLOCK:
           console.log('Submitted block has failed to be added to chain');
