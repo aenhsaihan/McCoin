@@ -137,7 +137,7 @@ class BurgerBlockchain {
           break;
         default:
           console.log('Submitted block has failed to be added to chain');
-          return [false, "Block was not accepted for whatever reason"];
+          return [this.resultType.INVALID_BLOCK, "Block was not accepted for whatever reason"];
       }
     }
 
