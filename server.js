@@ -34,6 +34,7 @@ const burgerNode = new BurgerNode(new BurgerBlockchain(), config);
 app.use('/', express.static(path.resolve('public')));
 
 app.get('/info', (request, response) => {
+    console.log('INFO CALLED')
     response.json(burgerNode.info);
 });
 
@@ -43,7 +44,8 @@ app.get('/blocks', (request, response) => {
 
 app.get('/blocks/:index', (request, response) => {
     const index = request.params.index
-    if(burgerNode.chain.length > index){
+    
+    if(burgerNode.chain.blocks.length > index){
         const block = burgerNode.findBlockByIndex(index)
         response.status(200).json(block);
     }else{
@@ -96,7 +98,7 @@ app.post('/transactions/send', (req, res) => {
             "transactionDataHash":transaction.transactionDataHash
         });
     } else {
-        res.status(404).json({
+        res.status(400).json({
             "errorMsg":"Invalid Transaction"
         });
     }
@@ -120,7 +122,7 @@ app.get('/address/:address/balance', (req, res) => {
 
 app.get('/address/:address/transactions', (req, res) => {
     const address = req.params.address;
-    if(burgerNode.chain.getTransactionsOfAddress(address).transactions.length > 0){
+    if(burgerNode.getTransactionsOfAddress(address).transactions.length > 0){
        res.status(200).json(burgerNode.getTransactionsOfAddress(address));
     }
     else{
@@ -133,7 +135,12 @@ app.get('/address/:address/transactions', (req, res) => {
 
 app.get('/transactions/:transactionDataHash', (req, res) => {
     const transactionDataHash = req.params.transactionDataHash;
-    res.json(burgerNode.getTransaction(transactionDataHash));
+    const transactionData = burgerNode.getTransaction(transactionDataHash);
+    if (Object.keys(transactionData) <= 0) {
+        res.status(404).json({errorMsg: "Invalid address"});
+    } else {
+        res.status(200).json(transactionData);
+    }
 });
 
 app.get('/peers', (req, res) => {
@@ -143,7 +150,12 @@ app.get('/peers', (req, res) => {
 app.post('/peers/connect', async (req, res) => {
     try {
         if (req.body.peer) {
-            await burgerSync.connect(req.body.peer);
+            await burgerSync.connect(req.body.peer, () => {
+                res.status(200).json({
+                    "message": "Connected to peer: "+req.body.peer
+                });
+            });
+            return;
         }
 
         /**
@@ -154,12 +166,20 @@ app.post('/peers/connect', async (req, res) => {
             peers.forEach(async (peer) => {
                 await burgerSync.connect(peer);
             });
+            res.status(200).json({
+                "message": "Connected to all peers!"
+            });
         }
-        res.status(200).json({
-            "message": "Connected to peer: "+req.body.peer
-        });
     } catch(e) {
-        res.status(e.status).send(e.message); 
+        let status;
+
+        if (e.status) {
+            status = e.status;
+        } else {
+            status = 500;
+        }
+        
+        res.status(status).send(e.message); 
     }
 })
 
@@ -184,10 +204,9 @@ app.get('/debug/reset-chain', (req, res) => {
     });
 })
 
-const initializeServer = () => {
+const initializeServer = (customPort) => {
     burgerSync = new BurgerSync(server, burgerNode);
-    server.listen(PORT, () => console.log('HTTP and P2P is listening on port: ' + PORT));
+    server.listen(customPort || PORT, () => console.log('HTTP and P2P is listening on port: ' + (customPort || PORT)));
 }
 
-
-initializeServer();
+module.exports = {server, burgerNode, initializeServer};
