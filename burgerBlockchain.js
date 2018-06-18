@@ -103,11 +103,6 @@ class BurgerBlockchain {
         const isBlockValid = this.isBlockValid(block);
         const isNextBlock = block.index === (lastBlock.index + 1);
         const isBlockWayAhead = block.index > (lastBlock.index + 1);
-        // if (isNextBlock && this.isBlockValid(block)) {
-        //     return true;
-        // } else {
-        //     return false;
-        // }
 
         if (isNextBlock && isBlockValid) {
           return this.resultType.VALID_BLOCK;
@@ -120,24 +115,7 @@ class BurgerBlockchain {
         }
     }
 
-    addMinedBlock(minedBlock) {
-      let block = this.miningJobs[minedBlock.blockDataHash];
-
-      if (!block) {
-        console.log('REJECTED: Submitted block not found in jobs, possibly mined by someone else first.');
-        return [false,"Block not found or already mined", this.resultType.BLOCK_ALREADY_MINED];
-      }
-
-      const {
-        nonce,
-        dateCreated,
-        blockHash
-      } = minedBlock;
-
-      block.nonce = nonce;
-      block.dateCreated = dateCreated;
-      block.blockHash = blockHash;
-
+    appendBlock(block) {
       // maybe if the mined block is ahead of our chain by more than one block...
       // we request the entire chain from our peer??
 
@@ -161,16 +139,27 @@ class BurgerBlockchain {
           console.log('Submitted block has failed to be added to chain');
           return [false, "Block was not accepted for whatever reason"];
       }
+    }
 
-      // if (this.canAddBlock(block)) {
-      //   this.addBlock(block);
-      //   this.clearMiningJobsBeforeBlockIndex(block.index);
-      //   console.log('Submitted block has been added to chain');
-      //   return [true,"Block accepted, reward paid: "+block.transactions[0].value+" microburgers"]
-      // } else {
-      //   console.log('Submitted block has failed to be added to chain');
-      //   return [false,"Block hash is incorrectly calculated"];
-      // }
+    addMinedBlock(minedBlock) {
+      let block = this.miningJobs[minedBlock.blockDataHash];
+
+      if (!block) {
+        console.log('REJECTED: Submitted block not found in jobs, possibly mined by someone else first.');
+        return [false,"Block not found or already mined", this.resultType.BLOCK_ALREADY_MINED];
+      }
+
+      const {
+        nonce,
+        dateCreated,
+        blockHash
+      } = minedBlock;
+
+      block.nonce = nonce;
+      block.dateCreated = dateCreated;
+      block.blockHash = blockHash;
+
+      return this.appendBlock(block);
     }
 
     clearMiningJobsBeforeBlockIndex(index) {

@@ -81,24 +81,6 @@ app.post('/mining/submit-mined-block', (request, response) => {
             "errorMsg": result
         }).status(404);
     }
-
-    // if(minedBlockAccepted){
-    //     response.json({
-    //         "message": result
-    //     }).status(200);
-    // } else {
-    //     // [Anar] this next line is not a good idea, just a note
-    //     if(minedRes[1]==="Block not found or already mined"){
-    //         response.json({
-    //             "errorMsg": result
-    //         }).status(404);
-    //     }else{
-    //         response.json({
-    //             "errorMsg": result
-    //         }).status(404);
-    //     }
-    // }
-
 })
 
 app.get('/mining/get-mining-job/:address', (request, response) => {
