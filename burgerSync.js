@@ -170,8 +170,8 @@ class BurgerSync {
             case this.MESSAGE_TYPE.BROADCAST_NEW_BLOCK:
                 this._printMessage('A new block has been mined!');
                 const minedBlockResult = this.burgerNode.appendBlock(message);
+                const minedBlockResultType = minedBlockResult[0];
                 const minedBlockMessage = minedBlockResult[1];
-                const minedBlockResultType = minedBlockResult[2];
 
                 switch (minedBlockResultType) {
                   case this.burgerNode.chain.resultType.VALID_BLOCK:

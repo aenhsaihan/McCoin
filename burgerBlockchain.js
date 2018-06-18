@@ -124,16 +124,16 @@ class BurgerBlockchain {
           this.addBlock(block);
           this.clearMiningJobsBeforeBlockIndex(block.index);
           console.log('Submitted block has been added to chain');
-          return [true, "Block accepted, reward paid: "+block.transactions[0].value+" microburgers", this.resultType.VALID_BLOCK, block];
+          return [this.resultType.VALID_BLOCK, "Block accepted, reward paid: "+block.transactions[0].value+" microburgers", block];
           break;
         case this.resultType.INVALID_BLOCK:
           console.log('Submitted block has failed to be added to chain');
-          return [false,"Block hash is incorrectly calculated", this.resultType.INVALID_BLOCK];
+          return [this.resultType.INVALID_BLOCK, "Block hash is incorrectly calculated"];
           break;
         case this.resultType.BLOCK_WAY_AHEAD:
           // request the chain
           console.log('Submitted block has failed to be added to chain');
-          return [false, "Submitted block is too far ahead, request new chain", this.resultType.BLOCK_WAY_AHEAD];
+          return [this.resultType.BLOCK_WAY_AHEAD, "Submitted block is too far ahead, request new chain"];
           break;
         default:
           console.log('Submitted block has failed to be added to chain');
@@ -146,7 +146,7 @@ class BurgerBlockchain {
 
       if (!block) {
         console.log('REJECTED: Submitted block not found in jobs, possibly mined by someone else first.');
-        return [false,"Block not found or already mined", this.resultType.BLOCK_ALREADY_MINED];
+        return [this.resultType.BLOCK_ALREADY_MINED, "Block not found or already mined"];
       }
 
       const {

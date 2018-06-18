@@ -56,10 +56,9 @@ app.get('/blocks/:index', (request, response) => {
 app.post('/mining/submit-mined-block', (request, response) => {
    let minedRes = burgerNode.addMinedBlock(request.body);
 
-    const minedBlockAccepted = minedRes[0];
+    const resultType = minedRes[0];
     const result = minedRes[1];
-    const resultType = minedRes[2];
-    const block = minedRes[3];
+    const block = minedRes[2];
 
     const minedResultType = burgerNode.chain.resultType;
     switch (resultType) {
