@@ -4,7 +4,8 @@
     "description": "academy token blockchain project",
     "main": "index.js",
     "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1"
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "start": "node index.js"
     },
     "repository": {
         "type": "git",
@@ -27,9 +28,11 @@
         "path": "^0.12.7",
         "promise": "^8.0.1",
         "readline-sync": "^1.4.9",
+        "really-need": "^1.9.2",
         "request": "^2.86.0",
         "request-promise": "^4.2.2",
         "sinon": "^6.0.0",
+        "supertest": "^3.1.0",
         "uuid": "^3.2.1",
         "ws": "^5.1.1"
     },
