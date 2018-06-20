@@ -173,7 +173,7 @@ describe('Server', function () {
                     assert.equal(response.prevBlockhash, '232e447f6a0a065112b396aaa49cc52b0ff76c37cbd9169635992c207b8f10df');
                     assert.equal(response.transactions[0].from, '0000000000000000000000000000000000000000');
                     assert.equal(response.transactions[0].to, '1234567890');
-                    assert.equal(response.transactions[0].value, 500000 + 10);
+                    assert.equal(response.transactions[0].value, 5000000 + 10);
                     assert.equal(response.transactions[1].transactionDataHash, 'c901efc7864c6a94137e7a0f559610bc091fc362c314dc954ea76d22ee733f75');
                     done()
                 })
