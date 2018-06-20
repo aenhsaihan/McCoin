@@ -148,6 +148,25 @@ app.get('/transactions/:transactionDataHash', (req, res) => {
     }
 });
 
+app.get('/balances', (req, res) => {
+    const balances = {};
+
+    burgerNode.pullConfirmedTransactions().forEach((transaction) => {
+        if (!balances[transaction.to]) {
+            balances[transaction.to] = 0;
+        }
+
+        if (!balances[transaction.from]) {
+            balances[transaction.from] = 0;
+        }
+        
+        balances[transaction.to] += transaction.value;
+        balances[transaction.from] -= (transaction.value + transaction.fee)
+    });
+
+    res.status(200).json(balances);
+});
+
 app.get('/peers', (req, res) => {
     res.send(burgerNode.nodes);
 })
