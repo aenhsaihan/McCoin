@@ -91,7 +91,7 @@ class BurgerNode {
         }
 
         /**
-         * Clear the current pending transactions to 
+         * Clear the current pending transactions to
          * prepare it for the appended one.
          */
         this.chain.pendingTransactions = [];
@@ -294,6 +294,10 @@ class BurgerNode {
             console.log('Transaction ' + burgerTransaction.transactionDataHash + ' failed!');
             return false;
         }
+    }
+
+    appendBlock(block) {
+      return this.chain.appendBlock(block);
     }
 
     addMinedBlock(minedBlock) {

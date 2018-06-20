@@ -10,9 +10,16 @@ class BurgerBlockchain {
         this.blocks = blocks;
         this.pendingTransactions = transactions;
         this.currentDifficulty = currentDifficulty;
-        
+
         this.cumulativeDifficulty = 0;
         this.miningJobs = [];
+
+        this.resultType = {
+          VALID_BLOCK: 0,
+          INVALID_BLOCK: 1,
+          BLOCK_WAY_AHEAD: 2,
+          BLOCK_ALREADY_MINED: 3
+        }
     }
 
     static createNewInstance(chainData) {
@@ -49,7 +56,7 @@ class BurgerBlockchain {
           "dateCreated": "2018-06-13T10:01:48.474Z",
           "blockHash": "232e447f6a0a065112b396aaa49cc52b0ff76c37cbd9169635992c207b8f10df"
         }
-        
+
         const genesisBlock = BurgerBlock.createNewInstance(genesisBlockData);
         return genesisBlock;
     }
@@ -93,11 +100,45 @@ class BurgerBlockchain {
     canAddBlock(block) {
         const lastBlock = this.getLastBlock();
 
-        if (block.index > lastBlock.index && this.isBlockValid(block)) {
-            return true;
+        const isBlockValid = this.isBlockValid(block);
+        const isNextBlock = block.index === (lastBlock.index + 1);
+        const isBlockWayAhead = block.index > (lastBlock.index + 1);
+
+        if (isNextBlock && isBlockValid) {
+          return this.resultType.VALID_BLOCK;
+        } else if (isBlockWayAhead && isBlockValid) {
+          return this.resultType.BLOCK_WAY_AHEAD;
+        } else if (!isBlockValid) {
+          return this.resultType.INVALID_BLOCK;
         } else {
-            return false;
+          return this.resultType.INVALID_BLOCK;
         }
+    }
+
+    appendBlock(block) {
+      // maybe if the mined block is ahead of our chain by more than one block...
+      // we request the entire chain from our peer??
+
+      switch (this.canAddBlock(block)) {
+        case this.resultType.VALID_BLOCK:
+          this.addBlock(block);
+          this.clearMiningJobsBeforeBlockIndex(block.index);
+          console.log('Submitted block has been added to chain');
+          return [this.resultType.VALID_BLOCK, "Block accepted, reward paid: "+block.transactions[0].value+" microburgers", block];
+          break;
+        case this.resultType.INVALID_BLOCK:
+          console.log('Submitted block has failed to be added to chain');
+          return [this.resultType.INVALID_BLOCK, "Block hash is incorrectly calculated"];
+          break;
+        case this.resultType.BLOCK_WAY_AHEAD:
+          // request the chain
+          console.log('Submitted block has failed to be added to chain');
+          return [this.resultType.BLOCK_WAY_AHEAD, "Submitted block is too far ahead, request new chain"];
+          break;
+        default:
+          console.log('Submitted block has failed to be added to chain');
+          return [this.resultType.INVALID_BLOCK, "Block was not accepted for whatever reason"];
+      }
     }
 
     addMinedBlock(minedBlock) {
@@ -105,7 +146,7 @@ class BurgerBlockchain {
 
       if (!block) {
         console.log('REJECTED: Submitted block not found in jobs, possibly mined by someone else first.');
-        return [false,"Block not found or already mined"];
+        return [this.resultType.BLOCK_ALREADY_MINED, "Block not found or already mined"];
       }
 
       const {
@@ -118,15 +159,7 @@ class BurgerBlockchain {
       block.dateCreated = dateCreated;
       block.blockHash = blockHash;
 
-      if (this.canAddBlock(block)) {
-        this.addBlock(block);
-        this.clearMiningJobsBeforeBlockIndex(block.index);
-        console.log('Submitted block has been added to chain');
-        return [true,"Block accepted, reward paid: "+block.transactions[0].value+" microburgers"]
-      } else {
-        console.log('Submitted block has failed to be added to chain');
-        return [false,"Block hash is incorrectly calculated"];
-      }
+      return this.appendBlock(block);
     }
 
     clearMiningJobsBeforeBlockIndex(index) {
@@ -151,10 +184,10 @@ class BurgerBlockchain {
 
       for (let i = 0; i < this.pendingTransactions.length; i++) {
         const transaction = this.pendingTransactions[i];
-        
+
         transaction.minedInBlockIndex = index;
         transaction.transferSuccessful = this.canSenderTransferTransaction(transaction);
-        
+
         const duplicateTransaction = transactions.filter(tx => tx.transactionDataHash === transaction.transactionDataHash);
         if (duplicateTransaction.length <= 0) {
           transactions[0].value += transaction.fee;
@@ -236,7 +269,7 @@ class BurgerBlockchain {
         if (transaction.from === address) {
           balance -= transaction.fee;
           balance -= transaction.value;
-          
+
         } else if (transaction.to === address) {
           balance += transaction.value;
         }
