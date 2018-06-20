@@ -307,7 +307,66 @@ describe('Server', function () {
                 .expect('Content-Type', /json/)
                 .expect(
                     400, {
-                        errorMsg: 'Invalid Transaction'
+                        errorMsg: 'Invalid signature'
+                    },
+                    done
+                );
+        });
+
+        it('Should reject a negative value', function (done) {
+            const transaction = {
+                "from": "e9e12fe5c7d3330f83d7a374ca1bacc0cc730196",
+                "to": "ef85b208900e7e29b4462b46b545939d9fe30ea2",
+                "value": -100,
+                "fee": 10,
+                "dateCreated": "2018-06-18T16:16:03.552Z",
+                "data": "",
+                "senderPubKey": "7135be26422c9edf15ebb3076694f9acb5f6d37460b8352225863a32247b04fd1",
+                "senderSignature": [
+                    "eee2c19a30d4f650e0056f835b943522d53e8b9710fbdc33e2e6f1ff77cecd98",
+                    "28a6ab889983511b958aa3f6d7543c439b2f181d4eeab5c2e600b593b4757503"
+                ],
+                "minedInBlockIndex": null,
+                "transferSuccessful": null,
+                "transactionDataHash": "c901efc7864c6a94137e7a0f559610bc091fc362c314dc954ea76d22ee733f75"
+            }
+
+            request(server)
+                .post('/transactions/send')
+                .send(transaction)
+                .expect('Content-Type', /json/)
+                .expect(
+                    400, {
+                        errorMsg: 'Invalid value'
+                    },
+                    done
+                );
+        });
+
+        it('Should reject a low fee', function (done) {
+            const transaction = {
+                from: 'e9e12fe5c7d3330f83d7a374ca1bacc0cc730196',
+                to: '4f63a397f1eaef7e7870e9aaea0b263f3c119271',
+                value: '100',
+                fee: '1',
+                dateCreated: '2018-06-20T18:04:28.510Z',
+                data: '',
+                senderPubKey: '7135be26422c9edf15ebb3076694f9acb5f6d37460b8352225863a32247b04fd1',
+                senderSignature: 
+                 [ 'eb3d1d2acc23a9057884600b4398f1241797dd4749119fc4259feff0d6525696',
+                   '85166e13fbdcd7c6bb906a3cc9858fb856d8b6c7ccc84023e37ca4fd94203271' ],
+                minedInBlockIndex: null,
+                transferSuccessful: null,
+                transactionDataHash: 'e2f9cc415ae46a8f56e984d86c1f7033266f3c2355363a7dbf5461f94b8c9baf' 
+            }
+
+            request(server)
+                .post('/transactions/send')
+                .send(transaction)
+                .expect('Content-Type', /json/)
+                .expect(
+                    400, {
+                        errorMsg: 'Low fee'
                     },
                     done
                 );
@@ -543,7 +602,7 @@ describe('Server', function () {
                      * of websockets. For the interest of time, setTimeout()
                      * gets the job done.
                      */
-                    setTimeout(function() {
+                    setTimeout(function () {
                         const response = res.body;
                         assert.equal(response.message, 'Connected to peer: http://mccoin.herokuapp.com');
                         assert.equal(Object.values(burgerNode.nodes).length, 1);

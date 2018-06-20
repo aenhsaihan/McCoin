@@ -34,7 +34,6 @@ const burgerNode = new BurgerNode(new BurgerBlockchain(), config);
 app.use('/', express.static(path.resolve('public')));
 
 app.get('/info', (request, response) => {
-    console.log('INFO CALLED')
     response.json(burgerNode.info);
 });
 
@@ -91,16 +90,22 @@ app.get('/transactions/pending',(req, res) => {
 })
 app.post('/transactions/send', (req, res) => {
     const transaction = req.body;
-    const isTransactionValid = burgerNode.addPendingTransaction(req.body);
-    if (isTransactionValid) {
-        burgerSync.broadcastNewTransaction(transaction);
-        res.status(200).json({
-            "transactionDataHash":transaction.transactionDataHash
-        });
-    } else {
+    try {
+        const isTransactionValid = burgerNode.addPendingTransaction(req.body);
+        if (isTransactionValid) {
+            burgerSync.broadcastNewTransaction(transaction);
+            res.status(200).json({
+                "transactionDataHash":transaction.transactionDataHash
+            });
+        } else {
+            res.status(400).json({
+                errorMsg: "Internal server error"
+            });
+        }
+    } catch (e) {
         res.status(400).json({
-            "errorMsg":"Invalid Transaction"
-        });
+            errorMsg: e.message
+        })
     }
 })
 
