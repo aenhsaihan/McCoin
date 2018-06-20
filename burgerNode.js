@@ -3,7 +3,7 @@ const BurgerTransaction = require('./burgerTransaction');
 const BurgerBlockchain = require('./burgerBlockchain');
 const BurgerWallet = require('./burgerWallet');
 const uuidv4 = require('uuid/v4');
- 
+
 class BurgerNode {
     constructor(burgerBlockchain, configurations) {
         this.chain = burgerBlockchain;
@@ -70,12 +70,12 @@ class BurgerNode {
                     }
                 }
             }
- 
+
             allPendingTransactions = allPendingTransactions.filter((transactions) => {
                 return transactions !== 0;
             });
         }
-    
+
         if (pendingTransactions.length > 0 && this.chain.pendingTransactions.length === 0) {
             /**
              * Sync the incoming pending transactions.
@@ -91,11 +91,11 @@ class BurgerNode {
         }
 
         /**
-         * Clear the current pending transactions to 
+         * Clear the current pending transactions to
          * prepare it for the appended one.
          */
         this.chain.pendingTransactions = [];
-        
+
         allPendingTransactions.forEach((transaction) => {
             this.addPendingTransaction(transaction);
         });
@@ -107,7 +107,7 @@ class BurgerNode {
 
     cleanPendingTransactions(pendingTransactionsData) {
         let pendingTransactions = pendingTransactionsData;
-        
+
         for (let index = 0; index < this.pullConfirmedTransactions().length; index++) {
             const transaction = this.pullConfirmedTransactions()[index];
             for (let pendingIndex = 0; pendingIndex < pendingTransactions.length; pendingIndex++) {
@@ -192,7 +192,7 @@ class BurgerNode {
       }
 
       return areBlocksValid;
-    } 
+    }
 
     validateGenesisBlock(newChain) {
       // [Anar] maybe this logic should go in the chain?
@@ -299,7 +299,11 @@ class BurgerNode {
             console.log('Transaction ' + burgerTransaction.transactionDataHash + ' failed!');
             return false;
         }
-    } 
+    }
+
+    appendBlock(block) {
+      return this.chain.appendBlock(block);
+    }
 
     addMinedBlock(minedBlock) {
         return this.chain.addMinedBlock(minedBlock);
@@ -355,7 +359,7 @@ class BurgerNode {
         transaction.fee = parseInt(transaction.fee);
         transaction.value = parseInt(transaction.value);
 
-        const areNumbersOfCorrectType = typeof transaction.fee === 'number' 
+        const areNumbersOfCorrectType = typeof transaction.fee === 'number'
                                         && typeof transaction.value === 'number'
                                         && !isNaN(transaction.fee)
                                         && !isNaN(transaction.value);
@@ -425,7 +429,7 @@ class BurgerNode {
         this.chain.blocks.forEach(block => {
             confirmedTransactions = confirmedTransactions.concat(block.transactions);
         });
-        
+
         return confirmedTransactions;
     };
 

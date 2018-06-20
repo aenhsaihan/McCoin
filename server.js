@@ -56,24 +56,34 @@ app.get('/blocks/:index', (request, response) => {
 })
 
 app.post('/mining/submit-mined-block', (request, response) => {
-   let minedRes = burgerNode.addMinedBlock(request.body);
-    burgerSync.broadcastNewBlock(burgerNode.chain);
-    if(minedRes[0]){
+    let minedRes = burgerNode.addMinedBlock(request.body);
+
+    const resultType = minedRes[0];
+    const result = minedRes[1];
+    const block = minedRes[2];
+
+    const minedResultType = burgerNode.chain.resultType;
+    switch (resultType) {
+      case minedResultType.VALID_BLOCK:
         response.status(200).json({
-            "message":minedRes[1]
+            "message": result
         });
-    }else{
-        if(minedRes[1]==="Block not found or already mined"){
-            response.status(404).json({
-                "errorMsg":minedRes[1]
-            });
-        }else{
-            response.status(400).json({
-                "errorMsg":minedRes[1]
-            });
-        }
+        burgerSync.broadcastNewBlock(block);
+        break;
+      case minedResultType.INVALID_BLOCK:
+        response.status(404).json({
+            "errorMsg": result
+        });
+        break;
+      default:
+        // [Anar] not sure what a good default action would be...
+        // also, I was gonna have BLOCK_WAY_AHEAD here, but that
+        // seemed illogical at the time. Why would I submit a block
+        // that is way ahead of my own chain???
+        response.status(404).json({
+            "errorMsg": result
+        });
     }
-    
 })
 
 app.get('/mining/get-mining-job/:address', (request, response) => {
@@ -106,18 +116,16 @@ app.post('/transactions/send', (req, res) => {
 
 app.get('/address/:address/balance', (req, res) => {
     const address = req.params.address;
-    
-        const safeBalance = burgerNode.getSafeBalanceOfAddress(address);
-        const confirmedBalance = burgerNode.getConfirmedBalanceOfAddress(address);
-        const pendingBalance = burgerNode.getPendingBalanceOfAddress(address);
 
-        res.status(200).json({
-            safeBalance,
-            confirmedBalance: parseFloat(confirmedBalance),
-            pendingBalance
-        });
-    
+    const safeBalance = burgerNode.getSafeBalanceOfAddress(address);
+    const confirmedBalance = burgerNode.getConfirmedBalanceOfAddress(address);
+    const pendingBalance = burgerNode.getPendingBalanceOfAddress(address);
 
+    res.status(200).json({
+        safeBalance,
+        confirmedBalance: parseFloat(confirmedBalance),
+        pendingBalance
+    });
 })
 
 app.get('/address/:address/transactions', (req, res) => {
