@@ -117,15 +117,15 @@ describe('BurgerBlockchain', function () {
             });
         });
         it('Should add a valid block', function () {
-            assert.equal(burgerBlockchain.canAddBlock(burgerBlockData), true);
+            assert.equal(burgerBlockchain.canAddBlock(burgerBlockData), 0);
         });
         it('Should reject the invalid block due to blockHash mismatch', function () {
             burgerBlockData.blockHash = burgerBlockData.blockHash + 'XXXXXXXX';
-            assert.equal(burgerBlockchain.canAddBlock(burgerBlockData), false);
+            assert.equal(burgerBlockchain.canAddBlock(burgerBlockData), 1);
         });
         it('Should reject the invalid block due to bad blockIndex', function () {
             burgerBlockData.index = burgerBlockchain.blocks[0].index;
-            assert.equal(burgerBlockchain.canAddBlock(burgerBlockData), false);
+            assert.equal(burgerBlockchain.canAddBlock(burgerBlockData), 1);
         });
     });
     describe('#prepareCandidateBlock', function () {

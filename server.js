@@ -34,6 +34,7 @@ const burgerNode = new BurgerNode(new BurgerBlockchain(), config);
 app.use('/', express.static(path.resolve('public')));
 
 app.get('/info', (request, response) => {
+    console.log('INFO CALLED')
     response.json(burgerNode.info);
 });
 
@@ -43,13 +44,14 @@ app.get('/blocks', (request, response) => {
 
 app.get('/blocks/:index', (request, response) => {
     const index = request.params.index
-    if(burgerNode.chain.length > index){
+    
+    if(burgerNode.chain.blocks.length > index){
         const block = burgerNode.findBlockByIndex(index)
-        response.json(block).status(200);
+        response.status(200).json(block);
     }else{
-        response.json({
+        response.status(404).json({
             "errorMsg": "Invalid block index"
-        }).status(404);
+        });
     }
 })
 
@@ -63,23 +65,24 @@ app.post('/mining/submit-mined-block', (request, response) => {
     const minedResultType = burgerNode.chain.resultType;
     switch (resultType) {
       case minedResultType.VALID_BLOCK:
-        response.json({
+        response.status(200).json({
             "message": result
-        }).status(200);
+        });
         burgerSync.broadcastNewBlock(block);
         break;
       case minedResultType.INVALID_BLOCK:
-        response.json({
+        response.status(404).json({
             "errorMsg": result
-        }).status(404);
+        });
+        break;
       default:
         // [Anar] not sure what a good default action would be...
         // also, I was gonna have BLOCK_WAY_AHEAD here, but that
         // seemed illogical at the time. Why would I submit a block
         // that is way ahead of my own chain???
-        response.json({
+        response.status(404).json({
             "errorMsg": result
-        }).status(404);
+        });
     }
 })
 
@@ -101,48 +104,51 @@ app.post('/transactions/send', (req, res) => {
     const isTransactionValid = burgerNode.addPendingTransaction(req.body);
     if (isTransactionValid) {
         burgerSync.broadcastNewTransaction(transaction);
-        res.json({
+        res.status(200).json({
             "transactionDataHash":transaction.transactionDataHash
-        }).status(200);
+        });
     } else {
-        res.json({
+        res.status(400).json({
             "errorMsg":"Invalid Transaction"
-        }).status(404);
+        });
     }
 })
 
 app.get('/address/:address/balance', (req, res) => {
     const address = req.params.address;
 
-        const safeBalance = burgerNode.getSafeBalanceOfAddress(address);
-        const confirmedBalance = burgerNode.getConfirmedBalanceOfAddress(address);
-        const pendingBalance = burgerNode.getPendingBalanceOfAddress(address);
+    const safeBalance = burgerNode.getSafeBalanceOfAddress(address);
+    const confirmedBalance = burgerNode.getConfirmedBalanceOfAddress(address);
+    const pendingBalance = burgerNode.getPendingBalanceOfAddress(address);
 
-        res.json({
-            safeBalance,
-            confirmedBalance: parseFloat(confirmedBalance),
-            pendingBalance
-        }).status(200);
-
-
+    res.status(200).json({
+        safeBalance,
+        confirmedBalance: parseFloat(confirmedBalance),
+        pendingBalance
+    });
 })
 
 app.get('/address/:address/transactions', (req, res) => {
     const address = req.params.address;
-    if(burgerNode.chain.getTransactionsOfAddress(address).transactions.length > 0){
-       res.json(burgerNode.getTransactionsOfAddress(address)).status(200);
+    if(burgerNode.getTransactionsOfAddress(address).transactions.length > 0){
+       res.status(200).json(burgerNode.getTransactionsOfAddress(address));
     }
     else{
-        res.json({
+        res.status(404).json({
             "errorMsg":"Invalid address"
-        }).status(404);
+        });
     }
 
 });
 
 app.get('/transactions/:transactionDataHash', (req, res) => {
     const transactionDataHash = req.params.transactionDataHash;
-    res.json(burgerNode.getTransaction(transactionDataHash));
+    const transactionData = burgerNode.getTransaction(transactionDataHash);
+    if (Object.keys(transactionData) <= 0) {
+        res.status(404).json({errorMsg: "Invalid address"});
+    } else {
+        res.status(200).json(transactionData);
+    }
 });
 
 app.get('/peers', (req, res) => {
@@ -152,7 +158,12 @@ app.get('/peers', (req, res) => {
 app.post('/peers/connect', async (req, res) => {
     try {
         if (req.body.peer) {
-            await burgerSync.connect(req.body.peer);
+            await burgerSync.connect(req.body.peer, () => {
+                res.status(200).json({
+                    "message": "Connected to peer: "+req.body.peer
+                });
+            });
+            return;
         }
 
         /**
@@ -163,12 +174,20 @@ app.post('/peers/connect', async (req, res) => {
             peers.forEach(async (peer) => {
                 await burgerSync.connect(peer);
             });
+            res.status(200).json({
+                "message": "Connected to all peers!"
+            });
         }
-        res.status(200).json({
-            "message": "Connected to peer: "+req.body.peer
-        });
     } catch(e) {
-        res.status(e.status).send(e.message);
+        let status;
+
+        if (e.status) {
+            status = e.status;
+        } else {
+            status = 500;
+        }
+        
+        res.status(status).send(e.message); 
     }
 })
 
@@ -193,10 +212,9 @@ app.get('/debug/reset-chain', (req, res) => {
     });
 })
 
-const initializeServer = () => {
+const initializeServer = (customPort) => {
     burgerSync = new BurgerSync(server, burgerNode);
-    server.listen(PORT, () => console.log('HTTP and P2P is listening on port: ' + PORT));
+    server.listen(customPort || PORT, () => console.log('HTTP and P2P is listening on port: ' + (customPort || PORT)));
 }
 
-
-initializeServer();
+module.exports = {server, burgerNode, initializeServer};

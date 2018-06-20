@@ -260,7 +260,7 @@ class BurgerNode {
 
     findBlockByIndex(index) {
         const blocks = this.getBlocks()
-        const blockAtIndex = blocks.filter(block => block.index === parseInt(index))
+        const blockAtIndex = blocks.find(block => block.index === parseInt(index))
         return blockAtIndex
     }
 

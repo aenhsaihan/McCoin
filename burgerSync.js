@@ -31,21 +31,39 @@ class BurgerSync {
      *
      * @param {url} newPeer - the (http) URL of the peer
      */
-    async connect(newPeer) {
+    async connect(newPeer, callback = () => {}) {
         const options = {
             uri: newPeer + '/info',
             json: true
         };
 
-        let info = await requester(options);
+        let info; 
+        
+        try {
+            info = await requester(options);
+        } catch (e) {
+            const error = new Error('Error: Unable to connect to peer!');
+            error.status = 404;
+            throw error;
+
+        }
 
         if (Object.keys(this.peers).includes(info.nodeId)) {
-            throw new Error('Error: Already connected to peer!');
+            const error = new Error('Error: Already connected to peer!');
+            error.status = 409;
+            throw error;
+        }
+
+        if (this.burgerNode.info.chainId !== info.chainId) {
+            const error = new Error('Error: Chain ID mismatch!');
+            error.status = 400;
+            throw error;
         }
 
         const newPeerWebSocket = new WebSocket('ws://' + info.nodeUrl);
         newPeerWebSocket.on('open', () => {
             this.initializeConnection(newPeerWebSocket);
+            callback();
         });
     }
 
