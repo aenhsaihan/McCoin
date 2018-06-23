@@ -25,6 +25,7 @@ describe('Server', function () {
                     about: 'McCoinChain/v0.1',
                     nodeId: 'test',
                     chainId: '232e447f6a0a065112b396aaa49cc52b0ff76c37cbd9169635992c207b8f10df',
+                    latestBlockHash: "232e447f6a0a065112b396aaa49cc52b0ff76c37cbd9169635992c207b8f10df",
                     nodeUrl: 'test',
                     peers: 0,
                     currentDifficulty: 4,
