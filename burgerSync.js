@@ -142,7 +142,17 @@ class BurgerSync {
 
                 this.addPeer(message.nodeId, message.nodeUrl, peer);
 
-                if (message.cumulativeDifficulty > this.burgerNode.info.cumulativeDifficulty) {
+                const ownBlockHash = this.burgerNode.info.latestBlockHash;
+                const peerBlockHash = message.latestBlockHash;
+
+                const willSync = this.burgerNode.decideSync(
+                    this.burgerNode.info.cumulativeDifficulty,
+                    message.cumulativeDifficulty,
+                    ownBlockHash,
+                    peerBlockHash
+                );
+
+                if (willSync) {
                     this._printMessage('Peer chain is better, requesting sync...');
                     this._write(peer, this.MESSAGE_TYPE.REQUEST_SYNC_CHAIN, 'Let us sync the whole chain!');
                     return;

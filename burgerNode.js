@@ -3,6 +3,7 @@ const BurgerTransaction = require('./burgerTransaction');
 const BurgerBlockchain = require('./burgerBlockchain');
 const BurgerWallet = require('./burgerWallet');
 const uuidv4 = require('uuid/v4');
+const bnJs = require("bn.js");
 
 class BurgerNode {
     constructor(burgerBlockchain, configurations) {
@@ -18,6 +19,7 @@ class BurgerNode {
             "about": "McCoinChain/v0.1",
             "nodeId": this.nodeId,
             "chainId": this.chain.chainId,
+            "latestBlockHash": this.getLatestBlock().blockHash,
             "nodeUrl": this.nodeUrl,
             "peers": Object.keys(this.nodes).length,
             "currentDifficulty": this.chain.currentDifficulty,
@@ -218,6 +220,21 @@ class BurgerNode {
             areBlocksValid;
     }
 
+    decideSync(ownCumulativeDifficulty, peerCumulativeDifficulty, ownBlockHash, peerBlockHash) {
+        const ownBlockHashValue = new bnJs(ownBlockHash, 16);
+        const peerBlockHashValue = new bnJs(peerBlockHash, 16);
+
+        if (ownCumulativeDifficulty === peerCumulativeDifficulty && ownBlockHashValue.lt(peerBlockHashValue)) {
+            return true;
+        }
+
+        if (ownCumulativeDifficulty < peerCumulativeDifficulty) {
+            return true;
+        }
+
+        return false;
+    }
+
     replaceChain(newChain) {
         const isChainValid = this.validateChain(newChain);
         const newChainInstance = BurgerBlockchain.createNewInstance(newChain);
@@ -226,9 +243,18 @@ class BurgerNode {
 
         const newChainCumulativeDifficulty = newChainInstance.calculateCumulativeDifficulty();
         const currentChainCumulativeDifficulty = this.chain.calculateCumulativeDifficulty();
-        const hasMoreCumulativeDifficulty = newChainCumulativeDifficulty > currentChainCumulativeDifficulty;
 
-        if (isChainValid && hasMoreCumulativeDifficulty) {
+        const ownBlockHash = this.getLatestBlock().blockHash;
+        const peerBlockHash = newChainInstance.blocks[newChainInstance.blocks.length - 1].blockHash;
+
+        const willSync = this.decideSync(
+            currentChainCumulativeDifficulty, 
+            newChainCumulativeDifficulty, 
+            ownBlockHash, 
+            peerBlockHash
+        );
+
+        if (isChainValid && willSync) {
             const pendingTransactions = this.chain.pendingTransactions;
             this.chain = newChainInstance;
             this.appendPendingTransactions(pendingTransactions);
@@ -239,6 +265,11 @@ class BurgerNode {
         } else {
             if (!isChainValid) {
                 console.log('REJECTED! Received chain is not valid!');
+                return false;
+            }
+
+            if (ownBlockHashValue.gte(peerBlockHashValue)) {
+                console.log('Peer block hash is lesser, allowing peer to sync...');
                 return false;
             }
 
