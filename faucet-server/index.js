@@ -1,6 +1,7 @@
 const express = require('express')
 const path = require('path');
 const http = require('http');
+
 const BurgerFaucet = require('../burgerFaucet');
 var bodyParser = require('body-parser');
 var cors = require('cors');
@@ -13,7 +14,7 @@ app.use(bodyParser.json());
 
 const PORT =  5555;
 
-const addressTracking;
+const addressTracking ={};
 
 app.get('/faucet/:address', async (req, res) => {
     const address = req.params.address;
@@ -22,13 +23,18 @@ app.get('/faucet/:address', async (req, res) => {
         const burgers = 1000000;
         await BurgerFaucet.sendBurgers(address, burgers);
         res.send("Request accepted!");
-    }else{
+    }
+    else{
+        //console.log("got here")
         let now = new Date();
         if(Math.abs(addressTracking.address.getTime() - now.getTime())>(1000 * 3600)){
             const burgers = 1000000;
             await BurgerFaucet.sendBurgers(address, burgers);
-            res.send("Request accepted!");
             addressTracking.address = now;
+            res.send("Request accepted!");
+        }
+        else{
+            res.send("Request denied, please try again later.");
         }
          
     }
