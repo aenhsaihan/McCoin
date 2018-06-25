@@ -191,13 +191,6 @@ app.post('/peers/connect', async (req, res) => {
     }
 })
 
-app.get('/faucet/:address/:burgers', async (req, res) => {
-  const address = req.params.address;
-  const burgers = req.params.burgers;
-  await BurgerFaucet.sendBurgers(address, burgers);
-  res.send("Request accepted!");
-});
-
 app.get('/debug', (req, res) => {
     res.json({
         "node": burgerNode,
