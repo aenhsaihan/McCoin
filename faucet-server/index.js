@@ -18,8 +18,8 @@ const addressTracking ={};
 
 app.get('/faucet/:address', async (req, res) => {
     const address = req.params.address;
-    if(!addressTracking.address){
-        addressTracking.address = new Date();
+    if(!addressTracking[address]){
+        addressTracking[address] = new Date();
         const burgers = 1000000;
         await BurgerFaucet.sendBurgers(address, burgers);
         res.send("Request accepted!");
@@ -27,10 +27,10 @@ app.get('/faucet/:address', async (req, res) => {
     else{
         //console.log("got here")
         let now = new Date();
-        if(Math.abs(addressTracking.address.getTime() - now.getTime())>(1000 * 3600)){
+        if(Math.abs(addressTracking[address].getTime() - now.getTime())>(1000 * 3600)){
             const burgers = 1000000;
             await BurgerFaucet.sendBurgers(address, burgers);
-            addressTracking.address = now;
+            addressTracking[address] = now;
             res.send("Request accepted!");
         }
         else{
