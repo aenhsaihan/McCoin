@@ -15,9 +15,14 @@ const uri = host + ":" + port;
 const minerProxyInstance = new MinerProxy(uri, minerPrivateKey);
  
 async function mineForever() {
-    const minedBlock = await minerProxyInstance.mine();
-    if (minedBlock) {
-        await minerProxyInstance.submitMinedBlock(minedBlock);
+    try {
+        const minedBlock = await minerProxyInstance.mine();
+        if (minedBlock) {
+            await minerProxyInstance.submitMinedBlock(minedBlock);
+        }
+    } catch (e) {
+        console.log(e.message);
+        console.log('Restarting miner...');
     }
     
     setTimeout(() => {
