@@ -19,27 +19,31 @@ const addressTracking ={};
 app.get('/faucet/:address', async (req, res) => {
     const address = req.params.address;
     if(!addressTracking[address]){
-        addressTracking[address] = new Date();
-        const burgers = 1000000;
-        await BurgerFaucet.sendBurgers(address, burgers);
-        res.send("Request accepted!");
+        try {
+            await send(address);
+            res.status(200).send("Request accepted!");
+        } catch (e) {
+            res.status(400).send(e.message);
+        }
     }
     else{
-        //console.log("got here")
         let now = new Date();
-        if(Math.abs(addressTracking[address].getTime() - now.getTime())>(1000 * 3600)){
-            const burgers = 1000000;
-            await BurgerFaucet.sendBurgers(address, burgers);
-            addressTracking[address] = now;
-            res.send("Request accepted!");
+        if (Math.abs(addressTracking[address].getTime() - now.getTime())>(1000 * 3600)) {
+            await send(address);
+            res.status(200).send("Request accepted!");
         }
-        else{
-            res.send("Request denied, please try again later.");
-        }
-         
+        else {
+            res.status(403).send("Request denied, please try again later.");
+        }    
     }
-    
   });
+
+  async function send(address) {
+    const burgers = 1000000;
+    await BurgerFaucet.sendBurgers(address, burgers);
+    let now = new Date();
+    addressTracking[address] = now;
+  }
 
 
 server.listen(PORT, () => console.log('Listening on port: ' + PORT));
