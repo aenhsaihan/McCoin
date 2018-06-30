@@ -220,7 +220,7 @@ class BurgerBlockchain {
       const coinbaseTransaction = new BurgerTransaction(
         "0000000000000000000000000000000000000000",
         coinbaseAddress,
-        500000,
+        5000000,
         0,
         new Date().toISOString(),
         'coinbase tx',

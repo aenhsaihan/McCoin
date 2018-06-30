@@ -3,6 +3,7 @@ const BurgerTransaction = require('./burgerTransaction');
 const BurgerBlockchain = require('./burgerBlockchain');
 const BurgerWallet = require('./burgerWallet');
 const uuidv4 = require('uuid/v4');
+const bnJs = require("bn.js");
 
 class BurgerNode {
     constructor(burgerBlockchain, configurations) {
@@ -18,6 +19,7 @@ class BurgerNode {
             "about": "McCoinChain/v0.1",
             "nodeId": this.nodeId,
             "chainId": this.chain.chainId,
+            "latestBlockHash": this.getLatestBlock().blockHash,
             "nodeUrl": this.nodeUrl,
             "peers": Object.keys(this.nodes).length,
             "currentDifficulty": this.chain.currentDifficulty,
@@ -126,96 +128,111 @@ class BurgerNode {
     }
 
     validateTransactionsOfBlock(block) {
-      let areTransactionsValid = true;
-      for (let i = 1; i < block.transactions.length; i++) {
-        const newTransaction = block.transactions[i];
-        const isTransactionValid = this.validateTransaction(newTransaction, block);
-        const isMinedInCorrectBlockIndex = newTransaction.minedInBlockIndex === block.index;
-        const isTransferSuccessful = newTransaction.transferSuccessful === this.chain.canSenderTransferTransaction(newTransaction);
+        let areTransactionsValid = true;
+        for (let i = 1; i < block.transactions.length; i++) {
+            const newTransaction = block.transactions[i];
+            const isTransactionValid = this.validateTransaction(newTransaction, block);
+            const isMinedInCorrectBlockIndex = newTransaction.minedInBlockIndex === block.index;
+            const isTransferSuccessful = newTransaction.transferSuccessful === this.chain.canSenderTransferTransaction(newTransaction);
 
-        if (!isTransactionValid && !isMinedInCorrectBlockIndex && !isTransferSuccessful) {
-          areTransactionsValid = false;
-          break;
+            if (!isTransactionValid && !isMinedInCorrectBlockIndex && !isTransferSuccessful) {
+                areTransactionsValid = false;
+                break;
+            }
         }
-      }
 
-      return areTransactionsValid;
+        return areTransactionsValid;
     }
 
     validateBlocks(newChain) {
-      // [Anar] maybe this logic should go in the chain?
-      let areBlocksValid = true;
+        // [Anar] maybe this logic should go in the chain?
+        let areBlocksValid = true;
 
-      for (var i = 1; i < newChain.blocks.length; i++) {
-        const newBlock = newChain.blocks[i]
+        for (var i = 1; i < newChain.blocks.length; i++) {
+            const newBlock = newChain.blocks[i]
 
-        // just validating keys/values
-        const areBlockKeysAndValuesValid = BurgerBlock.validateBlock(newBlock);
+            // just validating keys/values
+            const areBlockKeysAndValuesValid = BurgerBlock.validateBlock(newBlock);
 
-        // re-calculate block data hash
-        const compareBlock = new BurgerBlock(
-          newBlock.index,
-          newBlock.transactions,
-          newBlock.difficulty,
-          newBlock.prevBlockhash,
-          newBlock.minedBy
-        );
-        const doBlockDataHashesMatch = newBlock.blockDataHash === compareBlock.blockDataHash;
+            // re-calculate block data hash
+            const compareBlock = new BurgerBlock(
+                newBlock.index,
+                newBlock.transactions,
+                newBlock.difficulty,
+                newBlock.prevBlockhash,
+                newBlock.minedBy
+            );
+            const doBlockDataHashesMatch = newBlock.blockDataHash === compareBlock.blockDataHash;
 
-        // re-calculate block hash
-        const doBlockHashesMatch = this.chain.isBlockValid(newBlock);
+            // re-calculate block hash
+            const doBlockHashesMatch = this.chain.isBlockValid(newBlock);
 
-        // corroborate hash's difficulty
-        const currentDifficulty = newBlock.difficulty;
-        const isDifficultyValid = newBlock.blockHash.substring(0, currentDifficulty) === Array(currentDifficulty + 1).join('0');
+            // corroborate hash's difficulty
+            const currentDifficulty = newBlock.difficulty;
+            const isDifficultyValid = newBlock.blockHash.substring(0, currentDifficulty) === Array(currentDifficulty + 1).join('0');
 
-        // corroborate the previousHash value of the previous block
-        const previousBlock = newChain.blocks[i - 1];
-        const isPrevBlockHashValid = newBlock.prevBlockhash === previousBlock.blockHash;
+            // corroborate the previousHash value of the previous block
+            const previousBlock = newChain.blocks[i - 1];
+            const isPrevBlockHashValid = newBlock.prevBlockhash === previousBlock.blockHash;
 
-        if (!areBlockKeysAndValuesValid
-          || !doBlockDataHashesMatch
-          || !doBlockHashesMatch
-          || !isDifficultyValid
-          || !isPrevBlockHashValid
-        ) {
-          areBlocksValid = false;
-          break;
+            if (!areBlockKeysAndValuesValid ||
+                !doBlockDataHashesMatch ||
+                !doBlockHashesMatch ||
+                !isDifficultyValid ||
+                !isPrevBlockHashValid
+            ) {
+                areBlocksValid = false;
+                break;
+            }
+
+            let areTransactionsValid = this.validateTransactionsOfBlock(newBlock);
+
+            if (!areTransactionsValid) {
+                areBlocksValid = false;
+                break;
+            }
         }
 
-        let areTransactionsValid = this.validateTransactionsOfBlock(newBlock);
-
-        if (!areTransactionsValid) {
-          areBlocksValid = false;
-          break;
-        }
-      }
-
-      return areBlocksValid;
+        return areBlocksValid;
     }
 
     validateGenesisBlock(newChain) {
-      // [Anar] maybe this logic should go in the chain?
-      const genesisBlockHeld = this.chain.blocks[0].transactions[0];
-      const genesisBlockHeldKeys = Object.keys(genesisBlockHeld);
-      const genesisBlockHeldValues = Object.values(genesisBlockHeld);
+        // [Anar] maybe this logic should go in the chain?
+        const genesisBlockHeld = this.chain.blocks[0].transactions[0];
+        const genesisBlockHeldKeys = Object.keys(genesisBlockHeld);
+        const genesisBlockHeldValues = Object.values(genesisBlockHeld);
 
-      const receivedGenesisBlock = newChain.blocks[0].transactions[0];
-      const receivedGenesisBlockKeys = Object.keys(receivedGenesisBlock);
-      const receivedGenesisBlockValues = Object.values(receivedGenesisBlock);
+        const receivedGenesisBlock = newChain.blocks[0].transactions[0];
+        const receivedGenesisBlockKeys = Object.keys(receivedGenesisBlock);
+        const receivedGenesisBlockValues = Object.values(receivedGenesisBlock);
 
-      const areKeysEqual = JSON.stringify(genesisBlockHeldKeys) === JSON.stringify(receivedGenesisBlockKeys);
-      const areValuesEqual = JSON.stringify(genesisBlockHeldValues) === JSON.stringify(receivedGenesisBlockValues);
+        const areKeysEqual = JSON.stringify(genesisBlockHeldKeys) === JSON.stringify(receivedGenesisBlockKeys);
+        const areValuesEqual = JSON.stringify(genesisBlockHeldValues) === JSON.stringify(receivedGenesisBlockValues);
 
-      return areKeysEqual && areValuesEqual;
+        return areKeysEqual && areValuesEqual;
     }
 
     validateChain(newChain) {
-      const isGenesisBlockValid = this.validateGenesisBlock(newChain);
-      const areBlocksValid = this.validateBlocks(newChain);
+        const isGenesisBlockValid = this.validateGenesisBlock(newChain);
+        const areBlocksValid = this.validateBlocks(newChain);
 
-      return isGenesisBlockValid
-          && areBlocksValid;
+        return isGenesisBlockValid &&
+            areBlocksValid;
+    }
+
+    decideSync(ownCumulativeDifficulty, peerCumulativeDifficulty, ownBlockHash, peerBlockHash) {
+        const ownBlockHashValue = new bnJs(ownBlockHash, 16);
+        const peerBlockHashValue = new bnJs(peerBlockHash, 16);
+
+        if (ownCumulativeDifficulty === peerCumulativeDifficulty && ownBlockHashValue.lt(peerBlockHashValue)) {
+            return true;
+        }
+
+        if (ownCumulativeDifficulty < peerCumulativeDifficulty) {
+            return true;
+        }
+
+        return false;
     }
 
     replaceChain(newChain) {
@@ -226,9 +243,18 @@ class BurgerNode {
 
         const newChainCumulativeDifficulty = newChainInstance.calculateCumulativeDifficulty();
         const currentChainCumulativeDifficulty = this.chain.calculateCumulativeDifficulty();
-        const hasMoreCumulativeDifficulty = newChainCumulativeDifficulty > currentChainCumulativeDifficulty;
 
-        if (isChainValid && hasMoreCumulativeDifficulty) {
+        const ownBlockHash = this.getLatestBlock().blockHash;
+        const peerBlockHash = newChainInstance.blocks[newChainInstance.blocks.length - 1].blockHash;
+
+        const willSync = this.decideSync(
+            currentChainCumulativeDifficulty, 
+            newChainCumulativeDifficulty, 
+            ownBlockHash, 
+            peerBlockHash
+        );
+
+        if (isChainValid && willSync) {
             const pendingTransactions = this.chain.pendingTransactions;
             this.chain = newChainInstance;
             this.appendPendingTransactions(pendingTransactions);
@@ -239,6 +265,11 @@ class BurgerNode {
         } else {
             if (!isChainValid) {
                 console.log('REJECTED! Received chain is not valid!');
+                return false;
+            }
+
+            if (ownBlockHashValue.gte(peerBlockHashValue)) {
+                console.log('Peer block hash is lesser, allowing peer to sync...');
                 return false;
             }
 
@@ -283,13 +314,8 @@ class BurgerNode {
         let burgerTransaction;
         let isValid;
 
-        try {
-            burgerTransaction = new BurgerTransaction(from, to, value, fee, dateCreated, data, senderPubKey, senderSignature);
-            isValid = this.validateTransaction(burgerTransaction);
-        } catch (e) {
-            console.log(e.message);
-            return false;
-        }
+        burgerTransaction = new BurgerTransaction(from, to, value, fee, dateCreated, data, senderPubKey, senderSignature);
+        isValid = this.validateTransaction(burgerTransaction);
 
         if (isValid) {
             this.chain.pendingTransactions.push(burgerTransaction);
@@ -310,16 +336,16 @@ class BurgerNode {
     }
 
     getPendingBalanceOfAddress(address) {
-      const pendingBalance = this.chain.getPendingBalanceOfAddress(address);
-      return pendingBalance;
+        const pendingBalance = this.chain.getPendingBalanceOfAddress(address);
+        return pendingBalance;
     }
 
     getConfirmedBalanceOfAddress(address) {
-      return this.chain.getConfirmedBalanceOfAddress(address);
+        return this.chain.getConfirmedBalanceOfAddress(address);
     }
 
     getSafeBalanceOfAddress(address) {
-      return this.chain.getSafeBalanceOfAddress(address);
+        return this.chain.getSafeBalanceOfAddress(address);
     }
 
     validateTransaction(transaction) {
@@ -342,45 +368,88 @@ class BurgerNode {
         const minimumFee = 10;
 
         const areKeysEqual = JSON.stringify(validKeys) === JSON.stringify(objectKeys);
-        let canPayFee = senderBalance > transaction.fee;
-        const willNotOverflow = (receiverBalance + transaction.value) >= receiverBalance;
-        const isValueGreaterThanOrEqualToZero = transaction.value >= 0;
-        const isSenderCorrect = this.validateAddress(transaction.from);
-        const isReceiverCorrect = this.validateAddress(transaction.to);
-        const isSignatureValid = BurgerWallet.verify(transaction);
-        const isFeeGreaterThanEqualToMinimum = transaction.fee >= minimumFee;
+        if (!areKeysEqual) {
+            throw new Error('Invalid transaction format');
+        }
 
         const expectedTransactionDataHash = BurgerTransaction.computetransactionDataHash(transaction);
         const isTransactionDataHashValid = expectedTransactionDataHash === transaction.transactionDataHash;
-
-        const transactionDataHashMustBeUnique = this.chain.pendingTransactions.filter(tx => tx.transactionDataHash === transaction.transactionDataHash).length === 0;
-        const isValidTransactionDataHash = transaction.transactionDataHash === BurgerTransaction.computetransactionDataHash(transaction);
+        if (!isTransactionDataHashValid) {
+            throw new Error('Invalid transaction data hash');
+        }
 
         transaction.fee = parseInt(transaction.fee);
         transaction.value = parseInt(transaction.value);
 
-        const areNumbersOfCorrectType = typeof transaction.fee === 'number'
-                                        && typeof transaction.value === 'number'
-                                        && !isNaN(transaction.fee)
-                                        && !isNaN(transaction.value);
+        const areNumbersOfCorrectType = typeof transaction.fee === 'number' &&
+            typeof transaction.value === 'number' &&
+            !isNaN(transaction.fee) &&
+            !isNaN(transaction.value);
+        if (!areNumbersOfCorrectType) {
+            throw new Error('Invalid values');
+        }
+
+        const isSenderCorrect = this.validateAddress(transaction.from);
+        if (!isSenderCorrect) {
+            throw new Error('Invalid sender');
+        }
+
+        const isReceiverCorrect = this.validateAddress(transaction.to);
+        if (!isReceiverCorrect) {
+            throw new Error('Invalid receiver');
+        }
+
+        const senderHasEnoughBalance = this.chain.canSenderTransferTransaction(transaction);
+        if (!senderHasEnoughBalance) {
+            throw new Error('Sender balance is not enough');
+        }
+
+        let canPayFee = senderBalance > transaction.fee;
+        if (!canPayFee) {
+            throw new Error('Fee not enough');
+        }
+
+        const willNotOverflow = (receiverBalance + transaction.value) >= receiverBalance;
+        if (!willNotOverflow) {
+            throw new Error('Invalid value');
+        }
+
+        const isValueGreaterThanOrEqualToZero = transaction.value >= 0;
+        if (!isValueGreaterThanOrEqualToZero) {
+            throw new Error('Cannot send negative value');
+        }
+
+        const isSignatureValid = BurgerWallet.verify(transaction);
+        if (!isSignatureValid) {
+            throw new Error('Invalid signature');
+        }
+        const isFeeGreaterThanEqualToMinimum = transaction.fee >= minimumFee;
+        if (!isFeeGreaterThanEqualToMinimum) {
+            throw new Error('Low fee');
+        }
+
+        const transactionDataHashMustBeUnique = this.chain.pendingTransactions.filter(tx => tx.transactionDataHash === transaction.transactionDataHash).length === 0;
+        if (!transactionDataHashMustBeUnique) {
+            throw new Error('Rejected due to duplicate transaction');
+        }
 
         if (transaction.from === '0000000000000000000000000000000000000000') {
             canPayFee = true;
             isSignatureValid = true;
         }
 
-        return areKeysEqual
-            && canPayFee
-            && willNotOverflow
-            && isValueGreaterThanOrEqualToZero
-            && isSenderCorrect
-            && isReceiverCorrect
-            && isSignatureValid
-            && isFeeGreaterThanEqualToMinimum
-            && isTransactionDataHashValid
-            && transactionDataHashMustBeUnique
-            && isValidTransactionDataHash
-            && areNumbersOfCorrectType
+        return areKeysEqual &&
+            canPayFee &&
+            willNotOverflow &&
+            isValueGreaterThanOrEqualToZero &&
+            isSenderCorrect &&
+            isReceiverCorrect &&
+            isSignatureValid &&
+            isFeeGreaterThanEqualToMinimum &&
+            isTransactionDataHashValid &&
+            transactionDataHashMustBeUnique &&
+            areNumbersOfCorrectType &&
+            senderHasEnoughBalance
     }
 
     validateAddress(address) {
@@ -409,7 +478,10 @@ class BurgerNode {
         transactions.sort((tx1, tx2) => {
             return new Date(tx1.dateCreated) < new Date(tx2.dateCreated);
         });
-        return {address, transactions};
+        return {
+            address,
+            transactions
+        };
     }
 
     getTransaction(transactionDataHash) {

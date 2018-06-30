@@ -34,7 +34,6 @@ const burgerNode = new BurgerNode(new BurgerBlockchain(), config);
 app.use('/', express.static(path.resolve('public')));
 
 app.get('/info', (request, response) => {
-    console.log('INFO CALLED')
     response.json(burgerNode.info);
 });
 
@@ -101,16 +100,22 @@ app.get('/transactions/pending',(req, res) => {
 })
 app.post('/transactions/send', (req, res) => {
     const transaction = req.body;
-    const isTransactionValid = burgerNode.addPendingTransaction(req.body);
-    if (isTransactionValid) {
-        burgerSync.broadcastNewTransaction(transaction);
-        res.status(200).json({
-            "transactionDataHash":transaction.transactionDataHash
-        });
-    } else {
+    try {
+        const isTransactionValid = burgerNode.addPendingTransaction(req.body);
+        if (isTransactionValid) {
+            burgerSync.broadcastNewTransaction(transaction);
+            res.status(200).json({
+                "transactionDataHash":transaction.transactionDataHash
+            });
+        } else {
+            res.status(400).json({
+                errorMsg: "Internal server error"
+            });
+        }
+    } catch (e) {
         res.status(400).json({
-            "errorMsg":"Invalid Transaction"
-        });
+            errorMsg: e.message
+        })
     }
 })
 
@@ -149,6 +154,25 @@ app.get('/transactions/:transactionDataHash', (req, res) => {
     } else {
         res.status(200).json(transactionData);
     }
+});
+
+app.get('/balances', (req, res) => {
+    const balances = {};
+
+    burgerNode.pullConfirmedTransactions().forEach((transaction) => {
+        if (!balances[transaction.to]) {
+            balances[transaction.to] = 0;
+        }
+
+        if (!balances[transaction.from]) {
+            balances[transaction.from] = 0;
+        }
+        
+        balances[transaction.to] += transaction.value;
+        balances[transaction.from] -= (transaction.value + transaction.fee)
+    });
+
+    res.status(200).json(balances);
 });
 
 app.get('/peers', (req, res) => {

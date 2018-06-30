@@ -37,8 +37,9 @@ describe('BurgerNode', function () {
 
             const signedTx = sender.sign(transaction);
             signedTx.transactionDataHash += '000';
-            const result = burgerNode.validateTransaction(signedTx);
-            assert.equal(false, result);
+            assert.throws(() => {
+                burgerNode.validateTransaction(signedTx);
+            }, /Invalid transaction data hash/);
         });
         it('Should fail due to object key mismatch', function () {
             const transaction = new BurgerTransaction(
@@ -57,8 +58,9 @@ describe('BurgerNode', function () {
 
             const signedTx = sender.sign(transaction);
 
-            const result = burgerNode.validateTransaction(signedTx);
-            assert.equal(false, result);
+            assert.throws(() => {
+                burgerNode.validateTransaction(signedTx);
+            }, /Invalid transaction format/);
         });
     })
 
@@ -73,10 +75,7 @@ describe('BurgerNode', function () {
             const transaction = new BurgerTransaction(
                 sender.address,
                 receiver.address,
-                faker.random.number({
-                    min: 10,
-                    max: 100
-                }),
+                100,
                 10,
                 new Date(),
                 faker.random.words(7),
@@ -91,10 +90,7 @@ describe('BurgerNode', function () {
             const transaction = new BurgerTransaction(
                 sender.address,
                 receiver.address,
-                faker.random.number({
-                    min: 10,
-                    max: 100
-                }),
+                100,
                 10,
                 new Date(),
                 faker.random.words(7),
@@ -105,8 +101,9 @@ describe('BurgerNode', function () {
 
             // force duplicate...
             burgerNode.addPendingTransaction(signedTx);
-            const result = burgerNode.addPendingTransaction(signedTx);
-            assert.equal(false, result);
+            assert.throws(() => {
+                burgerNode.addPendingTransaction(signedTx);
+            }, /Rejected due to duplicate transaction/);
         });
         it('Should fail due to bad receiver', function () {
             const transaction = new BurgerTransaction(
@@ -124,8 +121,9 @@ describe('BurgerNode', function () {
 
             const signedTx = sender.sign(transaction);
 
-            const result = burgerNode.addPendingTransaction(signedTx);
-            assert.equal(false, result);
+            assert.throws(() => {
+                burgerNode.addPendingTransaction(signedTx);
+            }, /Invalid receiver/);
         });
         it('Should fail due to bad sender', function () {
             const transaction = new BurgerTransaction(
@@ -143,8 +141,9 @@ describe('BurgerNode', function () {
 
             const signedTx = sender.sign(transaction);
 
-            const result = burgerNode.addPendingTransaction(signedTx);
-            assert.equal(false, result);
+            assert.throws(() => {
+                burgerNode.addPendingTransaction(signedTx);
+            }, /Invalid sender/);
         });
         it('Should fail due to sender having not enough balance', function () {
             const newSender = new BurgerWallet();
@@ -163,8 +162,9 @@ describe('BurgerNode', function () {
 
             const signedTx = sender.sign(transaction);
 
-            const result = burgerNode.addPendingTransaction(signedTx);
-            assert.equal(false, result);
+            assert.throws(() => {
+                burgerNode.addPendingTransaction(signedTx);
+            }, /Sender balance is not enough/);
         });
         it('Should fail due to fee lower than minimum fee', function () {
             const transaction = new BurgerTransaction(
@@ -182,15 +182,16 @@ describe('BurgerNode', function () {
 
             const signedTx = sender.sign(transaction);
 
-            const result = burgerNode.addPendingTransaction(signedTx);
-            assert.equal(false, result);
+            assert.throws(() => {
+                burgerNode.addPendingTransaction(signedTx);
+            }, /Low fee/);
         });
         it('Should fail due to invalid fee and amount', function () {
             const transaction = new BurgerTransaction(
                 sender.address,
                 receiver.address,
-                '50abc',
-                '10def',
+                'abcde456',
+                'fghij123',
                 new Date(),
                 faker.random.words(7),
                 sender.publicKey
@@ -198,8 +199,9 @@ describe('BurgerNode', function () {
 
             const signedTx = sender.sign(transaction);
 
-            const result = burgerNode.addPendingTransaction(signedTx);
-            assert.equal(false, result);
+            assert.throws(() => {
+                burgerNode.addPendingTransaction(signedTx);
+            }, /Invalid values/);
         });
         it('Should fail due to negative value', function () {
             const transaction = new BurgerTransaction(
@@ -217,8 +219,9 @@ describe('BurgerNode', function () {
 
             const signedTx = sender.sign(transaction);
 
-            const result = burgerNode.addPendingTransaction(signedTx);
-            assert.equal(false, result);
+            assert.throws(() => {
+                burgerNode.addPendingTransaction(signedTx);
+            }, /Invalid value/);
         });
     })
 })
