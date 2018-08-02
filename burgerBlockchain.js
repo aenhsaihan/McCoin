@@ -47,8 +47,7 @@ class BurgerBlockchain {
             "transferSuccessful": true,
             "transactionDataHash": "175f5ee0cd0e93b572729b09853f2cde411a9976abe39236dfbb9c8c7f319d4c"
           }],
-          "difficulty": 0,
-          "prevBlockhash": "0000000000000000000000000000000000000000000000000000000000000000",
+          "difficulty": 0,          
           "minedBy": "0000000000000000000000000000000000000000",
           "prevBlockHash": "0000000000000000000000000000000000000000000000000000000000000000",
           "blockDataHash": "e6c4e5e5a6f880028bddfc0e279c350ffdbd18dff8be2f2bb61cb6e99294a01b",
