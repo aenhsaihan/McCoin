@@ -96,9 +96,8 @@ describe('Server', function () {
                     transactionDataHash: 'bbe643a48497c35b63592d9272548d0f4f3547cd8ac41feba23952b79944a5a5'
                 }],
                 difficulty: 4,
-                prevBlockhash: '232e447f6a0a065112b396aaa49cc52b0ff76c37cbd9169635992c207b8f10df',
-                minedBy: '492bceee1efc35da07362ba7f523a8ba45469b54',
                 prevBlockHash: '232e447f6a0a065112b396aaa49cc52b0ff76c37cbd9169635992c207b8f10df',
+                minedBy: '492bceee1efc35da07362ba7f523a8ba45469b54',
                 blockDataHash: 'e2f71a1e17f69b8b3b00ae48722710643efa726dbe88d4ec7da9d5a9351273a8',
                 nonce: 0,
                 dateCreated: '2018-06-18T15:57:33.699Z',
@@ -171,7 +170,7 @@ describe('Server', function () {
                     assert.equal(response.minedBy, '1234567890');
                     assert.equal(response.difficulty, 4);
                     assert.equal(response.transactions.length, 2);
-                    assert.equal(response.prevBlockhash, '232e447f6a0a065112b396aaa49cc52b0ff76c37cbd9169635992c207b8f10df');
+                    assert.equal(response.prevBlockHash, '232e447f6a0a065112b396aaa49cc52b0ff76c37cbd9169635992c207b8f10df');
                     assert.equal(response.transactions[0].from, '0000000000000000000000000000000000000000');
                     assert.equal(response.transactions[0].to, '1234567890');
                     assert.equal(response.transactions[0].value, 5000000 + 10);
@@ -199,9 +198,8 @@ describe('Server', function () {
                     transactionDataHash: 'bbe643a48497c35b63592d9272548d0f4f3547cd8ac41feba23952b79944a5a5'
                 }],
                 difficulty: 4,
-                prevBlockhash: '232e447f6a0a065112b396aaa49cc52b0ff76c37cbd9169635992c207b8f10df',
-                minedBy: '492bceee1efc35da07362ba7f523a8ba45469b54',
                 prevBlockHash: '232e447f6a0a065112b396aaa49cc52b0ff76c37cbd9169635992c207b8f10df',
+                minedBy: '492bceee1efc35da07362ba7f523a8ba45469b54',
                 blockDataHash: 'e2f71a1e17f69b8b3b00ae48722710643efa726dbe88d4ec7da9d5a9351273a8',
                 dateCreated: '2018-06-18T15:57:34.696Z',
                 nonce: 21015,

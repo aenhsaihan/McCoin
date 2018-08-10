@@ -159,7 +159,7 @@ class BurgerNode {
                 newBlock.index,
                 newBlock.transactions,
                 newBlock.difficulty,
-                newBlock.prevBlockhash,
+                newBlock.prevBlockHash,
                 newBlock.minedBy
             );
             const doBlockDataHashesMatch = newBlock.blockDataHash === compareBlock.blockDataHash;
@@ -173,7 +173,7 @@ class BurgerNode {
 
             // corroborate the previousHash value of the previous block
             const previousBlock = newChain.blocks[i - 1];
-            const isPrevBlockHashValid = newBlock.prevBlockhash === previousBlock.blockHash;
+            const isPrevBlockHashValid = newBlock.prevBlockHash === previousBlock.blockHash;
 
             if (!areBlockKeysAndValuesValid ||
                 !doBlockDataHashesMatch ||

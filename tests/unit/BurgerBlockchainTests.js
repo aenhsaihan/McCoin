@@ -107,7 +107,6 @@ describe('BurgerBlockchain', function () {
                     "transactionDataHash": "f66112a9925edfba13458aaa9a0930ee532e1fe54e148f8f29f0d901fcd4ed7b"
                 }],
                 "difficulty": 4,
-                "prevBlockhash": "232e447f6a0a065112b396aaa49cc52b0ff76c37cbd9169635992c207b8f10df",
                 "minedBy": "492bceee1efc35da07362ba7f523a8ba45469b54",
                 "prevBlockHash": "232e447f6a0a065112b396aaa49cc52b0ff76c37cbd9169635992c207b8f10df",
                 "blockDataHash": "4c4d2fa5c84e5ecb5a2da4b46560f175acf0e078969d6796405d83cdc4981010",
@@ -323,7 +322,6 @@ describe('BurgerBlockchain', function () {
                         "transactionDataHash": "f9ae4be40baa17dab089ad448d814382b2115dccd1ba34b5b43505b60491f8d4"
                     }],
                     "difficulty": 4,
-                    "prevBlockhash": "232e447f6a0a065112b396aaa49cc52b0ff76c37cbd9169635992c207b8f10df",
                     "minedBy": "492bceee1efc35da07362ba7f523a8ba45469b54",
                     "prevBlockHash": "232e447f6a0a065112b396aaa49cc52b0ff76c37cbd9169635992c207b8f10df",
                     "blockDataHash": "57431110bcd7a053081c97b033b323b1675f25cfa09d1292fc81c31a253a758d",
@@ -350,7 +348,6 @@ describe('BurgerBlockchain', function () {
                         "transactionDataHash": "bc6ea822a441b5df0048a14c22da476948e75bf2f5791ae27ab00f9bba8123ae"
                     }],
                     "difficulty": 4,
-                    "prevBlockhash": "0000ba91189de52bc2efd2bb09ccef1f29f1b9b598666d2a3389398d9ea27cd4",
                     "minedBy": "492bceee1efc35da07362ba7f523a8ba45469b54",
                     "prevBlockHash": "0000ba91189de52bc2efd2bb09ccef1f29f1b9b598666d2a3389398d9ea27cd4",
                     "blockDataHash": "d8193856552dc635341cb9f849d04d1aec0449bce0c30f09a2c448038b4a2315",
@@ -377,7 +374,6 @@ describe('BurgerBlockchain', function () {
                         "transactionDataHash": "b327fad7617a079a4d10ce3a83d19a15def7709a1c7b48f4cfcc30f3de0c48e7"
                     }],
                     "difficulty": 4,
-                    "prevBlockhash": "0000a27c00484bbae1b27ae7e86e48423a6c0e7b484fabf74b4418b295025f3e",
                     "minedBy": "492bceee1efc35da07362ba7f523a8ba45469b54",
                     "prevBlockHash": "0000a27c00484bbae1b27ae7e86e48423a6c0e7b484fabf74b4418b295025f3e",
                     "blockDataHash": "85633c4e56be55cfad6e600c449ed7adc7bdb5608ecce4e28fbe57a5a569d10e",
@@ -404,7 +400,6 @@ describe('BurgerBlockchain', function () {
                         "transactionDataHash": "417f87a86e2f726783da975d3312abbcca3f53eba2f653bfd45b43f4b5d1253a"
                     }],
                     "difficulty": 4,
-                    "prevBlockhash": "0000d080ef9118fa659dce84aa078a34a18385a273d73f3ee79b028f898dc799",
                     "minedBy": "492bceee1efc35da07362ba7f523a8ba45469b54",
                     "prevBlockHash": "0000d080ef9118fa659dce84aa078a34a18385a273d73f3ee79b028f898dc799",
                     "blockDataHash": "154421a7ce1295c6ab5bbe9fe5f443de185ef4878b22af4d39a879e5a4845c79",
@@ -431,7 +426,6 @@ describe('BurgerBlockchain', function () {
                         "transactionDataHash": "bd114bc80eeed93e28fcaedb5d78c84d26f27460cb02b3141f34b85e9f654e52"
                     }],
                     "difficulty": 4,
-                    "prevBlockhash": "0000f2b040e00db0fc37f64b55145ff7ae0cde9705b863123e652c682c790961",
                     "minedBy": "492bceee1efc35da07362ba7f523a8ba45469b54",
                     "prevBlockHash": "0000f2b040e00db0fc37f64b55145ff7ae0cde9705b863123e652c682c790961",
                     "blockDataHash": "7c59eb4d30092ec11e5dd58df5e2140e06b469ddbbf10a1c40ad169a85140922",
@@ -458,7 +452,6 @@ describe('BurgerBlockchain', function () {
                         "transactionDataHash": "393ba412c2b37fbf02d743ba69b869234f01f25f7bfc3b7f3537c6f737b16869"
                     }],
                     "difficulty": 4,
-                    "prevBlockhash": "00001e0f0e42c554b61384cea64491ffb5070a9f3dc047bec40c0582ec9fcf22",
                     "minedBy": "492bceee1efc35da07362ba7f523a8ba45469b54",
                     "prevBlockHash": "00001e0f0e42c554b61384cea64491ffb5070a9f3dc047bec40c0582ec9fcf22",
                     "blockDataHash": "a27e2454b771a596c94eb727fcecbfe4e795418ffd1165b9362db464ee2380d4",
@@ -485,7 +478,6 @@ describe('BurgerBlockchain', function () {
                         "transactionDataHash": "61efed3625755fb9e12d8808860aea49ffb53c8d69ffb4cdb2e54f4b2649fb78"
                     }],
                     "difficulty": 4,
-                    "prevBlockhash": "000049ede22ca47f77c3444373628da692f55dbd94cdf33f351c1adcb0b5b4c6",
                     "minedBy": "492bceee1efc35da07362ba7f523a8ba45469b54",
                     "prevBlockHash": "000049ede22ca47f77c3444373628da692f55dbd94cdf33f351c1adcb0b5b4c6",
                     "blockDataHash": "b1ac4c313cfaa5de542aab8bd3562c63186e6be7fb334dab948224ef67626c0b",

@@ -5,7 +5,6 @@ class BurgerBlock {
         this.index = index; //We will pass the appoppriate index
         this.transactions = transactions;
         this.difficulty = difficulty;
-        this.prevBlockhash = prevBlockHash;
         this.minedBy = minedBy;
         this.prevBlockHash = prevBlockHash;
         this.blockDataHash = this.calculateBlockDataHash();
@@ -42,7 +41,7 @@ class BurgerBlock {
       const isIndexANumber = typeof block.index === 'number';
       const isTransactionsAnArray = Array.isArray(block.transactions);
       const isDifficultyANumber = typeof block.difficulty === 'number';
-      const isPrevBlockhashAString = typeof block.prevBlockhash === 'string';
+      const isPrevBlockhashAString = typeof block.prevBlockHash === 'string';
       // TODO: genesis block minedBy shouldn't default to zero?
       const isMinedByAString = typeof block.minedBy === 'string';
       const isBlockDataHashAString = typeof block.blockDataHash === 'string';
